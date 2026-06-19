@@ -75,6 +75,9 @@ type AnnouncementRepository interface {
 
 	List(ctx context.Context, params pagination.PaginationParams, filters AnnouncementListFilters) ([]Announcement, *pagination.PaginationResult, error)
 	ListActive(ctx context.Context, now time.Time) ([]Announcement, error)
+	SetPinned(ctx context.Context, id int64, pinned bool) error
+	GetPinned(ctx context.Context) (*Announcement, error)
+	ListRecent(ctx context.Context, limit int, excludePinnedID int64) ([]Announcement, error)
 }
 
 type AnnouncementReadRepository interface {

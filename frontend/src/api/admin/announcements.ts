@@ -74,13 +74,25 @@ export async function getReadStatus(
   return data
 }
 
+export async function pin(id: number): Promise<{ message: string }> {
+  const { data } = await apiClient.post<{ message: string }>(`/admin/announcements/${id}/pin`)
+  return data
+}
+
+export async function unpin(id: number): Promise<{ message: string }> {
+  const { data } = await apiClient.post<{ message: string }>(`/admin/announcements/${id}/unpin`)
+  return data
+}
+
 const announcementsAPI = {
   list,
   getById,
   create,
   update,
   delete: deleteAnnouncement,
-  getReadStatus
+  getReadStatus,
+  pin,
+  unpin
 }
 
 export default announcementsAPI

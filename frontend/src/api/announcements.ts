@@ -3,7 +3,7 @@
  */
 
 import { apiClient } from './client'
-import type { UserAnnouncement } from '@/types'
+import type { Announcement, UserAnnouncement } from '@/types'
 
 export async function list(unreadOnly: boolean = false): Promise<UserAnnouncement[]> {
   const { data } = await apiClient.get<UserAnnouncement[]>('/announcements', {
@@ -17,9 +17,20 @@ export async function markRead(id: number): Promise<{ message: string }> {
   return data
 }
 
+export interface HomepageAnnouncementsResponse {
+  pinned?: Announcement
+  recent: Announcement[]
+}
+
+export async function getHomepage(): Promise<HomepageAnnouncementsResponse> {
+  const { data } = await apiClient.get<HomepageAnnouncementsResponse>('/announcements/homepage')
+  return data
+}
+
 const announcementsAPI = {
   list,
-  markRead
+  markRead,
+  getHomepage
 }
 
 export default announcementsAPI

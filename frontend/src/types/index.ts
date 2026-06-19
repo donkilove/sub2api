@@ -1,5 +1,8 @@
 /**
  * Core Type Definitions for Sub2API Frontend
+ *
+ * 注意：此文件保持与后端 dto/ 和 service/ 中类型的一致。
+ * 向后兼容性字段通过可选字段或联合类型处理。
  */
 
 // ==================== Common Types ====================
@@ -311,6 +314,7 @@ export interface Announcement {
   content: string
   status: AnnouncementStatus
   notify_mode: AnnouncementNotifyMode
+  is_pinned: boolean
   targeting: AnnouncementTargeting
   starts_at?: string
   ends_at?: string
@@ -325,6 +329,7 @@ export interface UserAnnouncement {
   title: string
   content: string
   notify_mode: AnnouncementNotifyMode
+  is_pinned: boolean
   starts_at?: string
   ends_at?: string
   read_at?: string

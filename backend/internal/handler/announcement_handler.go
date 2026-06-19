@@ -71,6 +71,27 @@ func (h *AnnouncementHandler) MarkRead(c *gin.Context) {
 	response.Success(c, gin.H{"message": "ok"})
 }
 
+// Homepage handles the public homepage announcement listing (no auth required).
+// GET /api/v1/announcements/homepage
+func (h *AnnouncementHandler) Homepage(c *gin.Context) {
+	pinned, recent, err := h.announcementService.ListRecentForHomepage(c.Request.Context(), 20)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+
+	result := gin.H{}
+	if pinned != nil {
+		result["pinned"] = dto.AnnouncementFromService(pinned)
+	}
+	recentDTOs := make([]dto.Announcement, 0, len(recent))
+	for i := range recent {
+		recentDTOs = append(recentDTOs, *dto.AnnouncementFromService(&recent[i]))
+	}
+	result["recent"] = recentDTOs
+	response.Success(c, result)
+}
+
 func parseBoolQuery(v string) bool {
 	switch strings.TrimSpace(strings.ToLower(v)) {
 	case "1", "true", "yes", "y", "on":

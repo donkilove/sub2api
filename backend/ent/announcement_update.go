@@ -200,6 +200,20 @@ func (_u *AnnouncementUpdate) ClearUpdatedBy() *AnnouncementUpdate {
 	return _u
 }
 
+// SetIsPinned sets the "is_pinned" field.
+func (_u *AnnouncementUpdate) SetIsPinned(v bool) *AnnouncementUpdate {
+	_u.mutation.SetIsPinned(v)
+	return _u
+}
+
+// SetNillableIsPinned sets the "is_pinned" field if the given value is not nil.
+func (_u *AnnouncementUpdate) SetNillableIsPinned(v *bool) *AnnouncementUpdate {
+	if v != nil {
+		_u.SetIsPinned(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AnnouncementUpdate) SetUpdatedAt(v time.Time) *AnnouncementUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -367,6 +381,9 @@ func (_u *AnnouncementUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if _u.mutation.UpdatedByCleared() {
 		_spec.ClearField(announcement.FieldUpdatedBy, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.IsPinned(); ok {
+		_spec.SetField(announcement.FieldIsPinned, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(announcement.FieldUpdatedAt, field.TypeTime, value)
@@ -606,6 +623,20 @@ func (_u *AnnouncementUpdateOne) ClearUpdatedBy() *AnnouncementUpdateOne {
 	return _u
 }
 
+// SetIsPinned sets the "is_pinned" field.
+func (_u *AnnouncementUpdateOne) SetIsPinned(v bool) *AnnouncementUpdateOne {
+	_u.mutation.SetIsPinned(v)
+	return _u
+}
+
+// SetNillableIsPinned sets the "is_pinned" field if the given value is not nil.
+func (_u *AnnouncementUpdateOne) SetNillableIsPinned(v *bool) *AnnouncementUpdateOne {
+	if v != nil {
+		_u.SetIsPinned(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AnnouncementUpdateOne) SetUpdatedAt(v time.Time) *AnnouncementUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -803,6 +834,9 @@ func (_u *AnnouncementUpdateOne) sqlSave(ctx context.Context) (_node *Announceme
 	}
 	if _u.mutation.UpdatedByCleared() {
 		_spec.ClearField(announcement.FieldUpdatedBy, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.IsPinned(); ok {
+		_spec.SetField(announcement.FieldIsPinned, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(announcement.FieldUpdatedAt, field.TypeTime, value)

@@ -233,6 +233,7 @@ func announcementEntityToService(m *dbent.Announcement) *service.Announcement {
 		Content:    m.Content,
 		Status:     m.Status,
 		NotifyMode: m.NotifyMode,
+		IsPinned:   m.IsPinned,
 		Targeting:  m.Targeting,
 		StartsAt:   m.StartsAt,
 		EndsAt:     m.EndsAt,
@@ -251,4 +252,83 @@ func announcementEntitiesToService(models []*dbent.Announcement) []service.Annou
 		}
 	}
 	return out
+}
+
+// SetPinned sets the is_pinned flag for a specific announcement.
+// It clears any existing pinned announcement first (ensuring global uniqueness).
+func (r *announcementRepository) SetPinned(ctx context.Context, id int64, pinned bool) error {
+	client := clientFromContext(ctx, r.client)
+	tx, err := client.Tx(ctx)
+	if err != nil {
+		return err
+	}
+	// Rollback on panic, but also explicitly rollback on non-commit paths.
+	defer func() {
+		if tx != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	if pinned {
+		// Clear all existing pinned announcements first
+		if _, err := tx.Announcement.Update().
+			Where(announcement.IsPinned(true)).
+			SetIsPinned(false).
+			Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	_, err = tx.Announcement.UpdateOneID(id).SetIsPinned(pinned).Save(ctx)
+	if err != nil {
+		return translatePersistenceError(err, service.ErrAnnouncementNotFound, nil)
+	}
+
+	// Commit and nil the tx to prevent rollback in defer
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	tx = nil
+	return nil
+}
+
+// GetPinned returns the currently pinned announcement, or nil if none.
+func (r *announcementRepository) GetPinned(ctx context.Context) (*service.Announcement, error) {
+	now := time.Now()
+	m, err := r.client.Announcement.Query().
+		Where(
+			announcement.IsPinned(true),
+			announcement.StatusEQ(service.AnnouncementStatusActive),
+			announcement.Or(announcement.StartsAtIsNil(), announcement.StartsAtLTE(now)),
+			announcement.Or(announcement.EndsAtIsNil(), announcement.EndsAtGT(now)),
+		).
+		First(ctx)
+	if err != nil {
+		if dbent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return announcementEntityToService(m), nil
+}
+
+// ListRecent returns the most recent active announcements, excluding the pinned one.
+func (r *announcementRepository) ListRecent(ctx context.Context, limit int, excludePinnedID int64) ([]service.Announcement, error) {
+	now := time.Now()
+	q := r.client.Announcement.Query().
+		Where(
+			announcement.StatusEQ(service.AnnouncementStatusActive),
+			announcement.Or(announcement.StartsAtIsNil(), announcement.StartsAtLTE(now)),
+			announcement.Or(announcement.EndsAtIsNil(), announcement.EndsAtGT(now)),
+		)
+
+	if excludePinnedID > 0 {
+		q = q.Where(announcement.IDNEQ(excludePinnedID))
+	}
+
+	items, err := q.Order(dbent.Desc(announcement.FieldCreatedAt)).Limit(limit).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return announcementEntitiesToService(items), nil
 }

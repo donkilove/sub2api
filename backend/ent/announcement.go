@@ -37,6 +37,8 @@ type Announcement struct {
 	CreatedBy *int64 `json:"created_by,omitempty"`
 	// 更新人用户ID（管理员）
 	UpdatedBy *int64 `json:"updated_by,omitempty"`
+	// 是否置顶（全局唯一，新置顶会取消旧置顶）
+	IsPinned bool `json:"is_pinned,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -72,6 +74,8 @@ func (*Announcement) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case announcement.FieldTargeting:
 			values[i] = new([]byte)
+		case announcement.FieldIsPinned:
+			values[i] = new(sql.NullBool)
 		case announcement.FieldID, announcement.FieldCreatedBy, announcement.FieldUpdatedBy:
 			values[i] = new(sql.NullInt64)
 		case announcement.FieldTitle, announcement.FieldContent, announcement.FieldStatus, announcement.FieldNotifyMode:
@@ -158,6 +162,12 @@ func (_m *Announcement) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UpdatedBy = new(int64)
 				*_m.UpdatedBy = value.Int64
+			}
+		case announcement.FieldIsPinned:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_pinned", values[i])
+			} else if value.Valid {
+				_m.IsPinned = value.Bool
 			}
 		case announcement.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -246,6 +256,9 @@ func (_m *Announcement) String() string {
 		builder.WriteString("updated_by=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
+	builder.WriteString(", ")
+	builder.WriteString("is_pinned=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsPinned))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

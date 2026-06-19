@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { announcementsAPI } from '@/api'
-import type { UserAnnouncement } from '@/types'
+import type { Announcement, UserAnnouncement } from '@/types'
 
 const THROTTLE_MS = 20 * 60 * 1000 // 20 minutes
 
@@ -12,6 +12,11 @@ export const useAnnouncementStore = defineStore('announcements', () => {
   const lastFetchTime = ref(0)
   const popupQueue = ref<UserAnnouncement[]>([])
   const currentPopup = ref<UserAnnouncement | null>(null)
+
+  // Homepage state
+  const homepagePinned = ref<Announcement | null>(null)
+  const homepageRecent = ref<Announcement[]>([])
+  const homepageLoading = ref(false)
 
   // Session-scoped dedup set — not reactive, used as plain lookup only
   let shownPopupIds = new Set<number>()
@@ -42,6 +47,20 @@ export const useAnnouncementStore = defineStore('announcements', () => {
       console.error('Failed to fetch announcements:', err)
     } finally {
       loading.value = false
+    }
+  }
+
+  async function fetchHomepageAnnouncements() {
+    if (homepageLoading.value) return
+    try {
+      homepageLoading.value = true
+      const resp = await announcementsAPI.getHomepage()
+      homepagePinned.value = resp.pinned ?? null
+      homepageRecent.value = resp.recent ?? []
+    } catch (err: any) {
+      console.error('Failed to fetch homepage announcements:', err)
+    } finally {
+      homepageLoading.value = false
     }
   }
 
@@ -124,6 +143,9 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     popupQueue.value = []
     currentPopup.value = null
     loading.value = false
+    homepagePinned.value = null
+    homepageRecent.value = []
+    homepageLoading.value = false
   }
 
   return {
@@ -131,10 +153,14 @@ export const useAnnouncementStore = defineStore('announcements', () => {
     announcements,
     loading,
     currentPopup,
+    homepagePinned,
+    homepageRecent,
+    homepageLoading,
     // Getters
     unreadCount,
     // Actions
     fetchAnnouncements,
+    fetchHomepageAnnouncements,
     dismissPopup,
     markAsRead,
     markAllAsRead,

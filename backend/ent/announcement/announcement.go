@@ -32,6 +32,8 @@ const (
 	FieldCreatedBy = "created_by"
 	// FieldUpdatedBy holds the string denoting the updated_by field in the database.
 	FieldUpdatedBy = "updated_by"
+	// FieldIsPinned holds the string denoting the is_pinned field in the database.
+	FieldIsPinned = "is_pinned"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -61,6 +63,7 @@ var Columns = []string{
 	FieldEndsAt,
 	FieldCreatedBy,
 	FieldUpdatedBy,
+	FieldIsPinned,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -88,6 +91,8 @@ var (
 	DefaultNotifyMode string
 	// NotifyModeValidator is a validator for the "notify_mode" field. It is called by the builders before save.
 	NotifyModeValidator func(string) error
+	// DefaultIsPinned holds the default value on creation for the "is_pinned" field.
+	DefaultIsPinned bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -142,6 +147,11 @@ func ByCreatedBy(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedBy orders the results by the updated_by field.
 func ByUpdatedBy(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedBy, opts...).ToFunc()
+}
+
+// ByIsPinned orders the results by the is_pinned field.
+func ByIsPinned(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsPinned, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

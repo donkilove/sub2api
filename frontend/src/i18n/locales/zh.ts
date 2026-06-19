@@ -107,7 +107,14 @@ export default {
     },
     footer: {
       allRightsReserved: '保留所有权利。'
-    }
+    },
+    // Announcements on home page
+    pinned: '📌 置顶公告',
+    noPinnedAnnouncement: '暂无置顶公告',
+    latestAnnouncement: '最新公告',
+    announcementTimeline: '公告时间线',
+    noAnnouncements: '暂无公告',
+    selectAnnouncement: '点击查看详情'
   },
 
   // Key Usage Query Page
@@ -4680,7 +4687,11 @@ export default {
       failedToUpdate: '更新公告失败',
       failedToDelete: '删除公告失败',
       failedToLoadReadStatus: '加载已读情况失败',
-      deleteConfirm: '确定要删除该公告吗？此操作无法撤销。'
+      deleteConfirm: '确定要删除该公告吗？此操作无法撤销。',
+      pin: '置顶到首页',
+      unpin: '取消置顶',
+      pinned: '公告已置顶到首页',
+      unpinned: '公告已取消置顶'
     },
 
     // Promo Codes

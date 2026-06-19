@@ -220,6 +220,52 @@ func (h *AnnouncementHandler) Delete(c *gin.Context) {
 	response.Success(c, gin.H{"message": "Announcement deleted successfully"})
 }
 
+// Pin handles pinning an announcement (sets is_pinned=true, clears others).
+// POST /api/v1/admin/announcements/:id/pin
+func (h *AnnouncementHandler) Pin(c *gin.Context) {
+	announcementID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || announcementID <= 0 {
+		response.BadRequest(c, "Invalid announcement ID")
+		return
+	}
+
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+
+	if err := h.announcementService.SetPinned(c.Request.Context(), announcementID, &subject.UserID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+
+	response.Success(c, gin.H{"message": "Announcement pinned successfully"})
+}
+
+// Unpin handles unpinning an announcement (sets is_pinned=false).
+// POST /api/v1/admin/announcements/:id/unpin
+func (h *AnnouncementHandler) Unpin(c *gin.Context) {
+	announcementID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || announcementID <= 0 {
+		response.BadRequest(c, "Invalid announcement ID")
+		return
+	}
+
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+
+	if err := h.announcementService.UnsetPinned(c.Request.Context(), announcementID, &subject.UserID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+
+	response.Success(c, gin.H{"message": "Announcement unpinned successfully"})
+}
+
 // ListReadStatus handles listing users read status for an announcement
 // GET /api/v1/admin/announcements/:id/read-status
 func (h *AnnouncementHandler) ListReadStatus(c *gin.Context) {

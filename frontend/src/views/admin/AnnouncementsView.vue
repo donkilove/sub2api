@@ -114,6 +114,21 @@
 
           <template #cell-actions="{ row }">
             <div class="flex items-center space-x-1">
+              <!-- Pin/Unpin -->
+              <button
+                @click.stop="handleTogglePin(row)"
+                :class="[
+                  'flex flex-col items-center gap-0.5 rounded-lg p-1.5 transition-colors',
+                  row.is_pinned
+                    ? 'text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20'
+                    : 'text-gray-400 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/20 dark:hover:text-amber-400'
+                ]"
+                :title="row.is_pinned ? t('admin.announcements.unpin') : t('admin.announcements.pin')"
+              >
+                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" />
+                </svg>
+              </button>
               <button
                 @click="openReadStatus(row)"
                 class="flex flex-col items-center gap-0.5 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
@@ -592,6 +607,26 @@ const readStatusAnnouncementId = ref<number | null>(null)
 function openReadStatus(row: Announcement) {
   readStatusAnnouncementId.value = row.id
   showReadStatusDialog.value = true
+}
+
+async function handleTogglePin(row: Announcement) {
+  try {
+    if (row.is_pinned) {
+      await adminAPI.announcements.unpin(row.id)
+      row.is_pinned = false
+      appStore.showSuccess(t('admin.announcements.unpinned'))
+    } else {
+      await adminAPI.announcements.pin(row.id)
+      // Update all rows: only the pinned one should be true
+      announcements.value.forEach(a => {
+        a.is_pinned = a.id === row.id
+      })
+      appStore.showSuccess(t('admin.announcements.pinned'))
+    }
+  } catch (error: any) {
+    console.error('Failed to toggle pin:', error)
+    appStore.showError(error.response?.data?.detail || t('admin.announcements.failedToUpdate'))
+  }
 }
 
 onMounted(async () => {

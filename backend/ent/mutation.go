@@ -5310,6 +5310,7 @@ type AnnouncementMutation struct {
 	addcreated_by *int64
 	updated_by    *int64
 	addupdated_by *int64
+	is_pinned     *bool
 	created_at    *time.Time
 	updated_at    *time.Time
 	clearedFields map[string]struct{}
@@ -5850,6 +5851,42 @@ func (m *AnnouncementMutation) ResetUpdatedBy() {
 	delete(m.clearedFields, announcement.FieldUpdatedBy)
 }
 
+// SetIsPinned sets the "is_pinned" field.
+func (m *AnnouncementMutation) SetIsPinned(b bool) {
+	m.is_pinned = &b
+}
+
+// IsPinned returns the value of the "is_pinned" field in the mutation.
+func (m *AnnouncementMutation) IsPinned() (r bool, exists bool) {
+	v := m.is_pinned
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPinned returns the old "is_pinned" field's value of the Announcement entity.
+// If the Announcement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AnnouncementMutation) OldIsPinned(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPinned is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPinned requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPinned: %w", err)
+	}
+	return oldValue.IsPinned, nil
+}
+
+// ResetIsPinned resets all changes to the "is_pinned" field.
+func (m *AnnouncementMutation) ResetIsPinned() {
+	m.is_pinned = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *AnnouncementMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -6010,7 +6047,7 @@ func (m *AnnouncementMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AnnouncementMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.title != nil {
 		fields = append(fields, announcement.FieldTitle)
 	}
@@ -6037,6 +6074,9 @@ func (m *AnnouncementMutation) Fields() []string {
 	}
 	if m.updated_by != nil {
 		fields = append(fields, announcement.FieldUpdatedBy)
+	}
+	if m.is_pinned != nil {
+		fields = append(fields, announcement.FieldIsPinned)
 	}
 	if m.created_at != nil {
 		fields = append(fields, announcement.FieldCreatedAt)
@@ -6070,6 +6110,8 @@ func (m *AnnouncementMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedBy()
 	case announcement.FieldUpdatedBy:
 		return m.UpdatedBy()
+	case announcement.FieldIsPinned:
+		return m.IsPinned()
 	case announcement.FieldCreatedAt:
 		return m.CreatedAt()
 	case announcement.FieldUpdatedAt:
@@ -6101,6 +6143,8 @@ func (m *AnnouncementMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldCreatedBy(ctx)
 	case announcement.FieldUpdatedBy:
 		return m.OldUpdatedBy(ctx)
+	case announcement.FieldIsPinned:
+		return m.OldIsPinned(ctx)
 	case announcement.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case announcement.FieldUpdatedAt:
@@ -6176,6 +6220,13 @@ func (m *AnnouncementMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedBy(v)
+		return nil
+	case announcement.FieldIsPinned:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPinned(v)
 		return nil
 	case announcement.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -6326,6 +6377,9 @@ func (m *AnnouncementMutation) ResetField(name string) error {
 		return nil
 	case announcement.FieldUpdatedBy:
 		m.ResetUpdatedBy()
+		return nil
+	case announcement.FieldIsPinned:
+		m.ResetIsPinned()
 		return nil
 	case announcement.FieldCreatedAt:
 		m.ResetCreatedAt()

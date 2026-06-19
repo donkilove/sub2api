@@ -134,6 +134,20 @@ func (_c *AnnouncementCreate) SetNillableUpdatedBy(v *int64) *AnnouncementCreate
 	return _c
 }
 
+// SetIsPinned sets the "is_pinned" field.
+func (_c *AnnouncementCreate) SetIsPinned(v bool) *AnnouncementCreate {
+	_c.mutation.SetIsPinned(v)
+	return _c
+}
+
+// SetNillableIsPinned sets the "is_pinned" field if the given value is not nil.
+func (_c *AnnouncementCreate) SetNillableIsPinned(v *bool) *AnnouncementCreate {
+	if v != nil {
+		_c.SetIsPinned(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *AnnouncementCreate) SetCreatedAt(v time.Time) *AnnouncementCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -220,6 +234,10 @@ func (_c *AnnouncementCreate) defaults() {
 		v := announcement.DefaultNotifyMode
 		_c.mutation.SetNotifyMode(v)
 	}
+	if _, ok := _c.mutation.IsPinned(); !ok {
+		v := announcement.DefaultIsPinned
+		_c.mutation.SetIsPinned(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := announcement.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -263,6 +281,9 @@ func (_c *AnnouncementCreate) check() error {
 		if err := announcement.NotifyModeValidator(v); err != nil {
 			return &ValidationError{Name: "notify_mode", err: fmt.Errorf(`ent: validator failed for field "Announcement.notify_mode": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.IsPinned(); !ok {
+		return &ValidationError{Name: "is_pinned", err: errors.New(`ent: missing required field "Announcement.is_pinned"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Announcement.created_at"`)}
@@ -332,6 +353,10 @@ func (_c *AnnouncementCreate) createSpec() (*Announcement, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.UpdatedBy(); ok {
 		_spec.SetField(announcement.FieldUpdatedBy, field.TypeInt64, value)
 		_node.UpdatedBy = &value
+	}
+	if value, ok := _c.mutation.IsPinned(); ok {
+		_spec.SetField(announcement.FieldIsPinned, field.TypeBool, value)
+		_node.IsPinned = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(announcement.FieldCreatedAt, field.TypeTime, value)
@@ -556,6 +581,18 @@ func (u *AnnouncementUpsert) AddUpdatedBy(v int64) *AnnouncementUpsert {
 // ClearUpdatedBy clears the value of the "updated_by" field.
 func (u *AnnouncementUpsert) ClearUpdatedBy() *AnnouncementUpsert {
 	u.SetNull(announcement.FieldUpdatedBy)
+	return u
+}
+
+// SetIsPinned sets the "is_pinned" field.
+func (u *AnnouncementUpsert) SetIsPinned(v bool) *AnnouncementUpsert {
+	u.Set(announcement.FieldIsPinned, v)
+	return u
+}
+
+// UpdateIsPinned sets the "is_pinned" field to the value that was provided on create.
+func (u *AnnouncementUpsert) UpdateIsPinned() *AnnouncementUpsert {
+	u.SetExcluded(announcement.FieldIsPinned)
 	return u
 }
 
@@ -788,6 +825,20 @@ func (u *AnnouncementUpsertOne) UpdateUpdatedBy() *AnnouncementUpsertOne {
 func (u *AnnouncementUpsertOne) ClearUpdatedBy() *AnnouncementUpsertOne {
 	return u.Update(func(s *AnnouncementUpsert) {
 		s.ClearUpdatedBy()
+	})
+}
+
+// SetIsPinned sets the "is_pinned" field.
+func (u *AnnouncementUpsertOne) SetIsPinned(v bool) *AnnouncementUpsertOne {
+	return u.Update(func(s *AnnouncementUpsert) {
+		s.SetIsPinned(v)
+	})
+}
+
+// UpdateIsPinned sets the "is_pinned" field to the value that was provided on create.
+func (u *AnnouncementUpsertOne) UpdateIsPinned() *AnnouncementUpsertOne {
+	return u.Update(func(s *AnnouncementUpsert) {
+		s.UpdateIsPinned()
 	})
 }
 
@@ -1188,6 +1239,20 @@ func (u *AnnouncementUpsertBulk) UpdateUpdatedBy() *AnnouncementUpsertBulk {
 func (u *AnnouncementUpsertBulk) ClearUpdatedBy() *AnnouncementUpsertBulk {
 	return u.Update(func(s *AnnouncementUpsert) {
 		s.ClearUpdatedBy()
+	})
+}
+
+// SetIsPinned sets the "is_pinned" field.
+func (u *AnnouncementUpsertBulk) SetIsPinned(v bool) *AnnouncementUpsertBulk {
+	return u.Update(func(s *AnnouncementUpsert) {
+		s.SetIsPinned(v)
+	})
+}
+
+// UpdateIsPinned sets the "is_pinned" field to the value that was provided on create.
+func (u *AnnouncementUpsertBulk) UpdateIsPinned() *AnnouncementUpsertBulk {
+	return u.Update(func(s *AnnouncementUpsert) {
+		s.UpdateIsPinned()
 	})
 }
 

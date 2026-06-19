@@ -95,6 +95,11 @@ func UpdatedBy(v int64) predicate.Announcement {
 	return predicate.Announcement(sql.FieldEQ(FieldUpdatedBy, v))
 }
 
+// IsPinned applies equality check predicate on the "is_pinned" field. It's identical to IsPinnedEQ.
+func IsPinned(v bool) predicate.Announcement {
+	return predicate.Announcement(sql.FieldEQ(FieldIsPinned, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Announcement {
 	return predicate.Announcement(sql.FieldEQ(FieldCreatedAt, v))
@@ -573,6 +578,16 @@ func UpdatedByIsNil() predicate.Announcement {
 // UpdatedByNotNil applies the NotNil predicate on the "updated_by" field.
 func UpdatedByNotNil() predicate.Announcement {
 	return predicate.Announcement(sql.FieldNotNull(FieldUpdatedBy))
+}
+
+// IsPinnedEQ applies the EQ predicate on the "is_pinned" field.
+func IsPinnedEQ(v bool) predicate.Announcement {
+	return predicate.Announcement(sql.FieldEQ(FieldIsPinned, v))
+}
+
+// IsPinnedNEQ applies the NEQ predicate on the "is_pinned" field.
+func IsPinnedNEQ(v bool) predicate.Announcement {
+	return predicate.Announcement(sql.FieldNEQ(FieldIsPinned, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

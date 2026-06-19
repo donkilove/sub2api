@@ -107,7 +107,14 @@ export default {
     },
     footer: {
       allRightsReserved: 'All rights reserved.'
-    }
+    },
+    // Announcements on home page
+    pinned: 'Pinned',
+    noPinnedAnnouncement: 'No pinned announcement yet',
+    latestAnnouncement: 'Latest Announcement',
+    announcementTimeline: 'Timeline',
+    noAnnouncements: 'No announcements yet',
+    selectAnnouncement: 'Click to view details'
   },
 
   // Key Usage Query Page
@@ -4527,7 +4534,11 @@ export default {
       failedToUpdate: 'Failed to update announcement',
       failedToDelete: 'Failed to delete announcement',
       failedToLoadReadStatus: 'Failed to load read status',
-      deleteConfirm: 'Are you sure you want to delete this announcement? This action cannot be undone.'
+      deleteConfirm: 'Are you sure you want to delete this announcement? This action cannot be undone.',
+      pin: 'Pin to homepage',
+      unpin: 'Unpin from homepage',
+      pinned: 'Announcement pinned to homepage',
+      unpinned: 'Announcement unpinned from homepage'
     },
 
     // Promo Codes

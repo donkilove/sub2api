@@ -1,13 +1,14 @@
 package routes
 
 import (
+	"github.com/Wei-Shaw/sub2api/internal/handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterCommonRoutes 注册通用路由（健康检查、状态等）
-func RegisterCommonRoutes(r *gin.Engine) {
+func RegisterCommonRoutes(r *gin.Engine, h *handler.Handlers) {
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -29,4 +30,7 @@ func RegisterCommonRoutes(r *gin.Engine) {
 			},
 		})
 	})
+
+	// Public homepage announcements (no auth required)
+	r.GET("/api/v1/announcements/homepage", h.Announcement.Homepage)
 }

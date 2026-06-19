@@ -387,18 +387,75 @@ func (s *AnnouncementService) ListUserReadStatus(
 	return out, page, nil
 }
 
-func isValidAnnouncementStatus(status string) bool {
-	switch status {
-	case AnnouncementStatusDraft, AnnouncementStatusActive, AnnouncementStatusArchived:
+func (s *AnnouncementService) SetPinned(ctx context.Context, id int64, actorID *int64) error {
+	a, err := s.announcementRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if err := s.announcementRepo.SetPinned(ctx, id, true); err != nil {
+		return err
+	}
+	// Update updated_by on the announcement
+	if actorID != nil && *actorID > 0 {
+		a.UpdatedBy = actorID
+		_ = s.announcementRepo.Update(ctx, a)
+	}
+	return nil
+}
+
+// UnsetPinned clears the pinned flag on the announcement.
+func (s *AnnouncementService) UnsetPinned(ctx context.Context, id int64, actorID *int64) error {
+	a, err := s.announcementRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if err := s.announcementRepo.SetPinned(ctx, id, false); err != nil {
+		return err
+	}
+	if actorID != nil && *actorID > 0 {
+		a.UpdatedBy = actorID
+		_ = s.announcementRepo.Update(ctx, a)
+	}
+	return nil
+}
+
+// GetPinned returns the currently pinned announcement, or nil.
+func (s *AnnouncementService) GetPinned(ctx context.Context) (*Announcement, error) {
+	return s.announcementRepo.GetPinned(ctx)
+}
+
+// ListRecentForHomepage returns the pinned announcement + recent announcements for the homepage.
+func (s *AnnouncementService) ListRecentForHomepage(ctx context.Context, limit int) (*Announcement, []Announcement, error) {
+	pinned, err := s.announcementRepo.GetPinned(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	
+	var excludeID int64
+	if pinned != nil {
+		excludeID = pinned.ID
+	}
+	
+	recent, err := s.announcementRepo.ListRecent(ctx, limit, excludeID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return pinned, recent, nil
+}
+
+func isValidAnnouncementNotifyMode(mode string) bool {
+	switch mode {
+	case AnnouncementNotifyModeSilent, AnnouncementNotifyModePopup:
 		return true
 	default:
 		return false
 	}
 }
 
-func isValidAnnouncementNotifyMode(mode string) bool {
-	switch mode {
-	case AnnouncementNotifyModeSilent, AnnouncementNotifyModePopup:
+func isValidAnnouncementStatus(status string) bool {
+	switch status {
+	case AnnouncementStatusDraft, AnnouncementStatusActive, AnnouncementStatusArchived:
 		return true
 	default:
 		return false

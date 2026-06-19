@@ -258,6 +258,7 @@ var (
 		{Name: "ends_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "created_by", Type: field.TypeInt64, Nullable: true},
 		{Name: "updated_by", Type: field.TypeInt64, Nullable: true},
+		{Name: "is_pinned", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 	}
@@ -275,7 +276,7 @@ var (
 			{
 				Name:    "announcement_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{AnnouncementsColumns[10]},
+				Columns: []*schema.Column{AnnouncementsColumns[11]},
 			},
 			{
 				Name:    "announcement_starts_at",
