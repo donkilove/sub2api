@@ -83,6 +83,7 @@ func (h *SettingHandler) GetPublicSettings(c *gin.Context) {
 		GitHubOAuthEnabled:               settings.GitHubOAuthEnabled,
 		GoogleOAuthEnabled:               settings.GoogleOAuthEnabled,
 		UniFedOAuthEnabled:               settings.UniFedOAuthEnabled,
+		UniFedHideEmailRegisterUI:        settings.UniFedHideEmailRegisterUI,
 		BackendModeEnabled:               settings.BackendModeEnabled,
 		PaymentEnabled:                   settings.PaymentEnabled,
 		Version:                          h.version,

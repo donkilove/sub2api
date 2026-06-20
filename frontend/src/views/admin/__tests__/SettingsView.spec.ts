@@ -153,6 +153,8 @@ vi.mock("vue-i18n", async () => {
     "admin.settings.unifed.description": "配置 Universe Federation / MiAuth 登录",
     "admin.settings.unifed.enable": "启用 Universe Federation 登录",
     "admin.settings.unifed.enableHint": "在登录/注册页面显示 Universe Federation 登录入口",
+    "admin.settings.unifed.hideEmailRegister": "隐藏注册页邮箱注册区域",
+    "admin.settings.unifed.hideEmailRegisterHint": "开启后注册页不显示传统注册区域。",
     "admin.settings.unifed.instanceUrl": "实例地址",
     "admin.settings.unifed.instanceUrlPlaceholder": "https://dc.hhhl.cc",
     "admin.settings.unifed.instanceUrlHint": "MiAuth 实例根地址",
@@ -344,6 +346,7 @@ const baseSettingsResponse = {
   linuxdo_connect_client_secret_configured: false,
   linuxdo_connect_redirect_url: "",
   unifed_connect_enabled: false,
+  unifed_connect_hide_email_register_ui: false,
   unifed_connect_instance_url: "https://dc.hhhl.cc",
   unifed_connect_redirect_url: "",
   wechat_connect_enabled: true,
@@ -1015,8 +1018,15 @@ describe("admin SettingsView wechat connect controls", () => {
     await openSecurityTab(wrapper);
 
     expect(wrapper.text()).toContain("Universe Federation 登录");
+    expect(
+      (
+        wrapper.get('[data-testid="unifed-hide-email-register-ui"]')
+          .element as HTMLInputElement
+      ).checked,
+    ).toBe(false);
 
     await wrapper.get('[data-testid="unifed-connect-enabled"]').setValue(true);
+    await wrapper.get('[data-testid="unifed-hide-email-register-ui"]').setValue(true);
     await wrapper
       .get('[data-testid="unifed-connect-instance-url"]')
       .setValue("https://misskey.example");
@@ -1030,6 +1040,7 @@ describe("admin SettingsView wechat connect controls", () => {
     expect(updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         unifed_connect_enabled: true,
+        unifed_connect_hide_email_register_ui: true,
         unifed_connect_instance_url: "https://misskey.example",
         unifed_connect_redirect_url:
           "https://admin.example.com/api/v1/auth/oauth/unifed/callback",

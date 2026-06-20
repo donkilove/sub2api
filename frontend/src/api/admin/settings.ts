@@ -486,6 +486,7 @@ export interface SystemSettings {
 
   // UniFed Connect OAuth settings
   unifed_connect_enabled: boolean;
+  unifed_connect_hide_email_register_ui: boolean;
   unifed_connect_instance_url: string;
   unifed_connect_redirect_url: string;
 
@@ -755,6 +756,7 @@ export interface UpdateSettingsRequest {
   dingtalk_connect_sync_display_name_attr_name?: string;
   dingtalk_connect_sync_dept_attr_name?: string;
   unifed_connect_enabled?: boolean;
+  unifed_connect_hide_email_register_ui?: boolean;
   unifed_connect_instance_url?: string;
   unifed_connect_redirect_url?: string;
   wechat_connect_enabled?: boolean;

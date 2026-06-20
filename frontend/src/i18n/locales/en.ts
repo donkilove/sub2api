@@ -5687,6 +5687,8 @@ export default {
         description: 'Configure Universe Federation / MiAuth for Sub2API end-user login',
         enable: 'Enable Universe Federation Login',
         enableHint: 'Show Universe Federation login on the login/register pages',
+        hideEmailRegister: 'Hide email signup area',
+        hideEmailRegisterHint: 'When enabled, the registration page hides the create-account title, email, password, invitation code, promo code, captcha, and create-account controls, leaving third-party continue options.',
         instanceUrl: 'Instance URL',
         instanceUrlPlaceholder: 'https://dc.hhhl.cc',
         instanceUrlHint: 'MiAuth instance origin. The community instance is https://dc.hhhl.cc',

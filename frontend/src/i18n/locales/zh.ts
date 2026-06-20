@@ -5846,6 +5846,8 @@ export default {
         description: '配置 Universe Federation / MiAuth，用于 Sub2API 用户登录',
         enable: '启用 Universe Federation 登录',
         enableHint: '在登录/注册页面显示 Universe Federation 登录入口',
+        hideEmailRegister: '隐藏注册页邮箱注册区域',
+        hideEmailRegisterHint: '开启后注册页不显示创建账户标题、邮箱、密码、邀请码、促销码、验证码和创建账户按钮，仅保留第三方继续入口。',
         instanceUrl: '实例地址',
         instanceUrlPlaceholder: 'https://dc.hhhl.cc',
         instanceUrlHint: 'MiAuth 实例根地址，当前社区实例为 https://dc.hhhl.cc',

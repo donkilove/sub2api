@@ -164,6 +164,7 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		DingTalkConnectSyncDisplayNameAttrName: settings.DingTalkConnectSyncDisplayNameAttrName,
 		DingTalkConnectSyncDeptAttrName:        settings.DingTalkConnectSyncDeptAttrName,
 		UniFedConnectEnabled:                   settings.UniFedConnectEnabled,
+		UniFedConnectHideEmailRegisterUI:       settings.UniFedConnectHideEmailRegisterUI,
 		UniFedConnectInstanceURL:               settings.UniFedConnectInstanceURL,
 		UniFedConnectRedirectURL:               settings.UniFedConnectRedirectURL,
 		WeChatConnectEnabled:                   settings.WeChatConnectEnabled,
@@ -447,9 +448,10 @@ type UpdateSettingsRequest struct {
 	DingTalkConnectSyncDeptAttrName        string `json:"dingtalk_connect_sync_dept_attr_name"`
 
 	// Universe Federation (Sharkey/Misskey MiAuth) OAuth 登录
-	UniFedConnectEnabled     bool   `json:"unifed_connect_enabled"`
-	UniFedConnectInstanceURL string `json:"unifed_connect_instance_url"`
-	UniFedConnectRedirectURL string `json:"unifed_connect_redirect_url"`
+	UniFedConnectEnabled             bool   `json:"unifed_connect_enabled"`
+	UniFedConnectHideEmailRegisterUI bool   `json:"unifed_connect_hide_email_register_ui"`
+	UniFedConnectInstanceURL         string `json:"unifed_connect_instance_url"`
+	UniFedConnectRedirectURL         string `json:"unifed_connect_redirect_url"`
 
 	// WeChat Connect OAuth 登录
 	WeChatConnectEnabled             bool   `json:"wechat_connect_enabled"`
@@ -1578,6 +1580,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		DingTalkConnectSyncDisplayNameAttrName: req.DingTalkConnectSyncDisplayNameAttrName,
 		DingTalkConnectSyncDeptAttrName:        req.DingTalkConnectSyncDeptAttrName,
 		UniFedConnectEnabled:                   req.UniFedConnectEnabled,
+		UniFedConnectHideEmailRegisterUI:       req.UniFedConnectHideEmailRegisterUI,
 		UniFedConnectInstanceURL:               req.UniFedConnectInstanceURL,
 		UniFedConnectRedirectURL:               req.UniFedConnectRedirectURL,
 		WeChatConnectEnabled:                   req.WeChatConnectEnabled,
@@ -2062,6 +2065,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		DingTalkConnectSyncDisplayNameAttrName: updatedSettings.DingTalkConnectSyncDisplayNameAttrName,
 		DingTalkConnectSyncDeptAttrName:        updatedSettings.DingTalkConnectSyncDeptAttrName,
 		UniFedConnectEnabled:                   updatedSettings.UniFedConnectEnabled,
+		UniFedConnectHideEmailRegisterUI:       updatedSettings.UniFedConnectHideEmailRegisterUI,
 		UniFedConnectInstanceURL:               updatedSettings.UniFedConnectInstanceURL,
 		UniFedConnectRedirectURL:               updatedSettings.UniFedConnectRedirectURL,
 		WeChatConnectEnabled:                   updatedSettings.WeChatConnectEnabled,

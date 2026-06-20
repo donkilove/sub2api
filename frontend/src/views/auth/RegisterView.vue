@@ -2,7 +2,7 @@
   <AuthLayout>
     <div class="space-y-6">
       <!-- Title -->
-      <div class="text-center">
+      <div v-if="showEmailRegisterForm" class="text-center">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
           {{ t('auth.createAccount') }}
         </h2>
@@ -27,7 +27,12 @@
       </div>
 
       <!-- Registration Form -->
-      <form v-else @submit.prevent="handleRegister" class="space-y-5">
+      <form
+        v-else-if="showEmailRegisterForm"
+        data-testid="email-register-form"
+        @submit.prevent="handleRegister"
+        class="space-y-5"
+      >
         <!-- Email Input -->
         <div>
           <label for="email" class="input-label">
@@ -243,8 +248,20 @@
 
       </form>
 
+      <LoginAgreementPrompt
+        v-if="loginAgreementEnabled && !showEmailRegisterForm"
+        :accepted="agreementAccepted"
+        :documents="loginAgreementDocuments"
+        :mode="loginAgreementMode"
+        :updated-at="loginAgreementUpdatedAt"
+        :visible="showAgreementModal"
+        @accept="acceptLoginAgreement"
+        @reject="rejectLoginAgreement"
+        @open="showAgreementModal = true"
+      />
+
       <div v-if="showOAuthLogin" class="space-y-3 pt-1">
-        <div class="flex items-center gap-3">
+        <div v-if="showEmailRegisterForm" class="flex items-center gap-3">
           <div class="h-px flex-1 bg-gray-200 dark:bg-dark-700"></div>
           <span class="text-xs text-gray-500 dark:text-dark-400">
             {{ t('auth.oauthOrContinue') }}
@@ -366,6 +383,7 @@ const wechatOAuthEnabled = ref<boolean>(false)
 const oidcOAuthEnabled = ref<boolean>(false)
 const oidcOAuthProviderName = ref<string>('OIDC')
 const unifedOAuthEnabled = ref<boolean>(false)
+const unifedHideEmailRegisterUI = ref<boolean>(false)
 const githubOAuthEnabled = ref<boolean>(false)
 const googleOAuthEnabled = ref<boolean>(false)
 const registrationEmailSuffixWhitelist = ref<string[]>([])
@@ -435,6 +453,10 @@ const showOAuthLogin = computed(
     googleOAuthEnabled.value
 )
 
+const showEmailRegisterForm = computed(
+  () => !unifedHideEmailRegisterUI.value || !unifedOAuthEnabled.value
+)
+
 const agreementGateActive = computed(
   () => loginAgreementEnabled.value && !agreementAccepted.value
 )
@@ -476,6 +498,7 @@ onMounted(async () => {
     oidcOAuthEnabled.value = settings.oidc_oauth_enabled
     oidcOAuthProviderName.value = settings.oidc_oauth_provider_name || 'OIDC'
     unifedOAuthEnabled.value = settings.unifed_oauth_enabled ?? false
+    unifedHideEmailRegisterUI.value = settings.unifed_hide_email_register_ui === true
     githubOAuthEnabled.value = settings.github_oauth_enabled
     googleOAuthEnabled.value = settings.google_oauth_enabled
     registrationEmailSuffixWhitelist.value = normalizeRegistrationEmailSuffixWhitelist(

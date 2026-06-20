@@ -67,9 +67,10 @@ type SystemSettings struct {
 	DingTalkConnectSyncDeptAttrName        string
 
 	// Universe Federation (Sharkey MiAuth) 登录
-	UniFedConnectEnabled     bool
-	UniFedConnectInstanceURL string
-	UniFedConnectRedirectURL string
+	UniFedConnectEnabled             bool
+	UniFedConnectHideEmailRegisterUI bool
+	UniFedConnectInstanceURL         string
+	UniFedConnectRedirectURL         string
 
 	// WeChat Connect OAuth 登录
 	WeChatConnectEnabled                   bool
@@ -275,20 +276,21 @@ type PublicSettings struct {
 	CustomMenuItems             string // JSON array of custom menu items
 	CustomEndpoints             string // JSON array of custom endpoints
 
-	LinuxDoOAuthEnabled      bool
-	DingTalkOAuthEnabled     bool
-	WeChatOAuthEnabled       bool
-	WeChatOAuthOpenEnabled   bool
-	WeChatOAuthMPEnabled     bool
-	WeChatOAuthMobileEnabled bool
-	BackendModeEnabled       bool
-	PaymentEnabled           bool
-	OIDCOAuthEnabled         bool
-	OIDCOAuthProviderName    string
-	GitHubOAuthEnabled       bool
-	GoogleOAuthEnabled       bool
-	UniFedOAuthEnabled       bool
-	Version                  string
+	LinuxDoOAuthEnabled       bool
+	DingTalkOAuthEnabled      bool
+	WeChatOAuthEnabled        bool
+	WeChatOAuthOpenEnabled    bool
+	WeChatOAuthMPEnabled      bool
+	WeChatOAuthMobileEnabled  bool
+	BackendModeEnabled        bool
+	PaymentEnabled            bool
+	OIDCOAuthEnabled          bool
+	OIDCOAuthProviderName     string
+	GitHubOAuthEnabled        bool
+	GoogleOAuthEnabled        bool
+	UniFedOAuthEnabled        bool
+	UniFedHideEmailRegisterUI bool
+	Version                   string
 
 	BalanceLowNotifyEnabled     bool
 	AccountQuotaNotifyEnabled   bool

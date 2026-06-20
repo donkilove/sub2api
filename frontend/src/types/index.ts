@@ -230,6 +230,7 @@ export interface PublicSettings {
   github_oauth_enabled: boolean
   google_oauth_enabled: boolean
   unifed_oauth_enabled: boolean
+  unifed_hide_email_register_ui?: boolean
   backend_mode_enabled: boolean
   version: string
   balance_low_notify_enabled: boolean

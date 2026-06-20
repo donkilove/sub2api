@@ -1813,6 +1813,21 @@
                 />
               </div>
 
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="font-medium text-gray-900 dark:text-white">{{
+                    t("admin.settings.unifed.hideEmailRegister")
+                  }}</label>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ t("admin.settings.unifed.hideEmailRegisterHint") }}
+                  </p>
+                </div>
+                <Toggle
+                  v-model="form.unifed_connect_hide_email_register_ui"
+                  data-testid="unifed-hide-email-register-ui"
+                />
+              </div>
+
               <div
                 v-if="form.unifed_connect_enabled"
                 class="border-t border-gray-100 pt-4 dark:border-dark-700"
@@ -7832,6 +7847,7 @@ const form = reactive<SettingsForm>({
   dingtalk_connect_sync_display_name_attr_name: "钉钉姓名",
   dingtalk_connect_sync_dept_attr_name: "钉钉部门",
   unifed_connect_enabled: false,
+  unifed_connect_hide_email_register_ui: false,
   unifed_connect_instance_url: "https://dc.hhhl.cc",
   unifed_connect_redirect_url: "",
   wechat_connect_enabled: false,
@@ -8986,6 +9002,7 @@ async function saveSettings() {
       dingtalk_connect_sync_display_name_attr_name: form.dingtalk_connect_sync_display_name_attr_name,
       dingtalk_connect_sync_dept_attr_name: form.dingtalk_connect_sync_dept_attr_name,
       unifed_connect_enabled: form.unifed_connect_enabled,
+      unifed_connect_hide_email_register_ui: form.unifed_connect_hide_email_register_ui,
       unifed_connect_instance_url: form.unifed_connect_instance_url,
       unifed_connect_redirect_url: form.unifed_connect_redirect_url,
       wechat_connect_enabled: form.wechat_connect_enabled,

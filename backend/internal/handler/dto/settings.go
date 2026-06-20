@@ -76,9 +76,10 @@ type SystemSettings struct {
 	DingTalkConnectSyncDisplayNameAttrName string `json:"dingtalk_connect_sync_display_name_attr_name"`
 	DingTalkConnectSyncDeptAttrName        string `json:"dingtalk_connect_sync_dept_attr_name"`
 
-	UniFedConnectEnabled     bool   `json:"unifed_connect_enabled"`
-	UniFedConnectInstanceURL string `json:"unifed_connect_instance_url"`
-	UniFedConnectRedirectURL string `json:"unifed_connect_redirect_url"`
+	UniFedConnectEnabled             bool   `json:"unifed_connect_enabled"`
+	UniFedConnectHideEmailRegisterUI bool   `json:"unifed_connect_hide_email_register_ui"`
+	UniFedConnectInstanceURL         string `json:"unifed_connect_instance_url"`
+	UniFedConnectRedirectURL         string `json:"unifed_connect_redirect_url"`
 
 	WeChatConnectEnabled                   bool   `json:"wechat_connect_enabled"`
 	WeChatConnectAppID                     string `json:"wechat_connect_app_id"`
@@ -314,6 +315,7 @@ type PublicSettings struct {
 	GitHubOAuthEnabled               bool                     `json:"github_oauth_enabled"`
 	GoogleOAuthEnabled               bool                     `json:"google_oauth_enabled"`
 	UniFedOAuthEnabled               bool                     `json:"unifed_oauth_enabled"`
+	UniFedHideEmailRegisterUI        bool                     `json:"unifed_hide_email_register_ui"`
 	SoraClientEnabled                bool                     `json:"sora_client_enabled"`
 	BackendModeEnabled               bool                     `json:"backend_mode_enabled"`
 	PaymentEnabled                   bool                     `json:"payment_enabled"`

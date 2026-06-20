@@ -343,6 +343,7 @@ export const useAppStore = defineStore('app', () => {
         linuxdo_oauth_enabled: false,
         dingtalk_oauth_enabled: false,
         unifed_oauth_enabled: false,
+        unifed_hide_email_register_ui: false,
         wechat_oauth_enabled: false,
         wechat_oauth_open_enabled: false,
         wechat_oauth_mp_enabled: false,

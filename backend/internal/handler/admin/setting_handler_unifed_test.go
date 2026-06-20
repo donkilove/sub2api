@@ -17,6 +17,7 @@ func newUniFedSettingsHandler() (*SettingHandler, *settingHandlerRepoStub) {
 	repo := &settingHandlerRepoStub{values: map[string]string{
 		service.SettingKeyPromoCodeEnabled:                     "true",
 		service.SettingKeyUniFedConnectEnabled:                 "false",
+		service.SettingKeyUniFedConnectHideEmailRegisterUI:     "false",
 		service.SettingKeyUniFedConnectInstanceURL:             "https://dc.hhhl.cc",
 		service.SettingKeyUniFedConnectRedirectURL:             "",
 		service.SettingKeyAuthSourceDefaultUniFedBalance:       "0",
@@ -36,6 +37,7 @@ func TestUpdateSettingsPersistsUniFedConfigAndDefaults(t *testing.T) {
 	body := map[string]any{
 		"promo_code_enabled":                             true,
 		"unifed_connect_enabled":                         true,
+		"unifed_connect_hide_email_register_ui":          true,
 		"unifed_connect_instance_url":                    "https://misskey.example",
 		"unifed_connect_redirect_url":                    "https://app.example.com/api/v1/auth/oauth/unifed/callback",
 		"auth_source_default_unifed_balance":             3.5,
@@ -55,6 +57,7 @@ func TestUpdateSettingsPersistsUniFedConfigAndDefaults(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, "true", repo.values[service.SettingKeyUniFedConnectEnabled])
+	require.Equal(t, "true", repo.values[service.SettingKeyUniFedConnectHideEmailRegisterUI])
 	require.Equal(t, "https://misskey.example", repo.values[service.SettingKeyUniFedConnectInstanceURL])
 	require.Equal(t, "https://app.example.com/api/v1/auth/oauth/unifed/callback", repo.values[service.SettingKeyUniFedConnectRedirectURL])
 	require.Equal(t, "3.50000000", repo.values[service.SettingKeyAuthSourceDefaultUniFedBalance])

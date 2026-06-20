@@ -811,6 +811,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyCustomEndpoints,
 		SettingKeyLinuxDoConnectEnabled,
 		SettingKeyUniFedConnectEnabled,
+		SettingKeyUniFedConnectHideEmailRegisterUI,
 		SettingKeyDingTalkConnectEnabled,
 		SettingKeyWeChatConnectEnabled,
 		SettingKeyWeChatConnectAppID,
@@ -952,6 +953,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		OIDCOAuthEnabled:                 oidcEnabled,
 		OIDCOAuthProviderName:            oidcProviderName,
 		UniFedOAuthEnabled:               unifedEnabled,
+		UniFedHideEmailRegisterUI:        settings[SettingKeyUniFedConnectHideEmailRegisterUI] == "true",
 		GitHubOAuthEnabled:               gitHubEnabled,
 		GoogleOAuthEnabled:               googleEnabled,
 		BalanceLowNotifyEnabled:          settings[SettingKeyBalanceLowNotifyEnabled] == "true",
@@ -1267,6 +1269,7 @@ type PublicSettingsInjectionPayload struct {
 	GitHubOAuthEnabled               bool                     `json:"github_oauth_enabled"`
 	GoogleOAuthEnabled               bool                     `json:"google_oauth_enabled"`
 	UniFedOAuthEnabled               bool                     `json:"unifed_oauth_enabled"`
+	UniFedHideEmailRegisterUI        bool                     `json:"unifed_hide_email_register_ui"`
 	BackendModeEnabled               bool                     `json:"backend_mode_enabled"`
 
 	PaymentEnabled              bool    `json:"payment_enabled"`
@@ -1335,6 +1338,7 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		GitHubOAuthEnabled:               settings.GitHubOAuthEnabled,
 		GoogleOAuthEnabled:               settings.GoogleOAuthEnabled,
 		UniFedOAuthEnabled:               settings.UniFedOAuthEnabled,
+		UniFedHideEmailRegisterUI:        settings.UniFedHideEmailRegisterUI,
 		BackendModeEnabled:               settings.BackendModeEnabled,
 		PaymentEnabled:                   settings.PaymentEnabled,
 		Version:                          s.version,
@@ -1837,6 +1841,7 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 
 	// Universe Federation (Sharkey MiAuth) OAuth 登录
 	updates[SettingKeyUniFedConnectEnabled] = strconv.FormatBool(settings.UniFedConnectEnabled)
+	updates[SettingKeyUniFedConnectHideEmailRegisterUI] = strconv.FormatBool(settings.UniFedConnectHideEmailRegisterUI)
 	updates[SettingKeyUniFedConnectInstanceURL] = settings.UniFedConnectInstanceURL
 	updates[SettingKeyUniFedConnectRedirectURL] = settings.UniFedConnectRedirectURL
 
@@ -2902,6 +2907,7 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyOIDCConnectUserInfoIDPath:                 "",
 		SettingKeyOIDCConnectUserInfoUsernamePath:           "",
 		SettingKeyUniFedConnectEnabled:                      strconv.FormatBool(s.cfg.UniFed.Enabled),
+		SettingKeyUniFedConnectHideEmailRegisterUI:          "false",
 		SettingKeyUniFedConnectInstanceURL:                  firstNonEmpty(s.cfg.UniFed.InstanceURL, defaultUniFedConnectInstance),
 		SettingKeyUniFedConnectRedirectURL:                  s.cfg.UniFed.RedirectURL,
 		SettingKeyDefaultConcurrency:                        strconv.Itoa(s.cfg.Default.UserConcurrency),
@@ -3288,6 +3294,7 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 	} else {
 		result.UniFedConnectEnabled = unifedBase.Enabled
 	}
+	result.UniFedConnectHideEmailRegisterUI = settings[SettingKeyUniFedConnectHideEmailRegisterUI] == "true"
 
 	if v, ok := settings[SettingKeyUniFedConnectInstanceURL]; ok && strings.TrimSpace(v) != "" {
 		result.UniFedConnectInstanceURL = strings.TrimSpace(v)

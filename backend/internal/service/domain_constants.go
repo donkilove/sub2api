@@ -191,9 +191,10 @@ const (
 	SettingKeyDingTalkConnectSyncDeptAttrName        = "dingtalk_connect_sync_dept_attr_name"
 
 	// Universe Federation (Sharkey/Misskey MiAuth) OAuth 登录设置
-	SettingKeyUniFedConnectEnabled     = "unifed_connect_enabled"
-	SettingKeyUniFedConnectInstanceURL = "unifed_connect_instance_url"
-	SettingKeyUniFedConnectRedirectURL = "unifed_connect_redirect_url"
+	SettingKeyUniFedConnectEnabled             = "unifed_connect_enabled"
+	SettingKeyUniFedConnectHideEmailRegisterUI = "unifed_connect_hide_email_register_ui"
+	SettingKeyUniFedConnectInstanceURL         = "unifed_connect_instance_url"
+	SettingKeyUniFedConnectRedirectURL         = "unifed_connect_redirect_url"
 
 	// WeChat Connect OAuth 登录设置
 	SettingKeyWeChatConnectEnabled             = "wechat_connect_enabled"
