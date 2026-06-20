@@ -163,6 +163,9 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		DingTalkConnectSyncCorpEmailAttrName:   settings.DingTalkConnectSyncCorpEmailAttrName,
 		DingTalkConnectSyncDisplayNameAttrName: settings.DingTalkConnectSyncDisplayNameAttrName,
 		DingTalkConnectSyncDeptAttrName:        settings.DingTalkConnectSyncDeptAttrName,
+		UniFedConnectEnabled:                   settings.UniFedConnectEnabled,
+		UniFedConnectInstanceURL:               settings.UniFedConnectInstanceURL,
+		UniFedConnectRedirectURL:               settings.UniFedConnectRedirectURL,
 		WeChatConnectEnabled:                   settings.WeChatConnectEnabled,
 		WeChatConnectAppID:                     settings.WeChatConnectAppID,
 		WeChatConnectAppSecretConfigured:       settings.WeChatConnectAppSecretConfigured,
@@ -443,6 +446,11 @@ type UpdateSettingsRequest struct {
 	DingTalkConnectSyncDisplayNameAttrName string `json:"dingtalk_connect_sync_display_name_attr_name"`
 	DingTalkConnectSyncDeptAttrName        string `json:"dingtalk_connect_sync_dept_attr_name"`
 
+	// Universe Federation (Sharkey/Misskey MiAuth) OAuth 登录
+	UniFedConnectEnabled     bool   `json:"unifed_connect_enabled"`
+	UniFedConnectInstanceURL string `json:"unifed_connect_instance_url"`
+	UniFedConnectRedirectURL string `json:"unifed_connect_redirect_url"`
+
 	// WeChat Connect OAuth 登录
 	WeChatConnectEnabled             bool   `json:"wechat_connect_enabled"`
 	WeChatConnectAppID               string `json:"wechat_connect_app_id"`
@@ -556,6 +564,11 @@ type UpdateSettingsRequest struct {
 	AuthSourceDefaultDingTalkSubscriptions    *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_dingtalk_subscriptions"`
 	AuthSourceDefaultDingTalkGrantOnSignup    *bool                             `json:"auth_source_default_dingtalk_grant_on_signup"`
 	AuthSourceDefaultDingTalkGrantOnFirstBind *bool                             `json:"auth_source_default_dingtalk_grant_on_first_bind"`
+	AuthSourceDefaultUniFedBalance            *float64                          `json:"auth_source_default_unifed_balance"`
+	AuthSourceDefaultUniFedConcurrency        *int                              `json:"auth_source_default_unifed_concurrency"`
+	AuthSourceDefaultUniFedSubscriptions      *[]dto.DefaultSubscriptionSetting `json:"auth_source_default_unifed_subscriptions"`
+	AuthSourceDefaultUniFedGrantOnSignup      *bool                             `json:"auth_source_default_unifed_grant_on_signup"`
+	AuthSourceDefaultUniFedGrantOnFirstBind   *bool                             `json:"auth_source_default_unifed_grant_on_first_bind"`
 	ForceEmailOnThirdPartySignup              *bool                             `json:"force_email_on_third_party_signup"`
 
 	// Model fallback configuration
@@ -672,6 +685,7 @@ type UpdateSettingsRequest struct {
 	AuthSourceGitHubPlatformQuotas   map[string]*service.DefaultPlatformQuotaSetting `json:"auth_source_default_github_platform_quotas"`
 	AuthSourceGooglePlatformQuotas   map[string]*service.DefaultPlatformQuotaSetting `json:"auth_source_default_google_platform_quotas"`
 	AuthSourceDingTalkPlatformQuotas map[string]*service.DefaultPlatformQuotaSetting `json:"auth_source_default_dingtalk_platform_quotas"`
+	AuthSourceUniFedPlatformQuotas   map[string]*service.DefaultPlatformQuotaSetting `json:"auth_source_default_unifed_platform_quotas"`
 
 	AllowUserViewErrorRequests *bool `json:"allow_user_view_error_requests"`
 }
@@ -760,7 +774,10 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 	req.AuthSourceDefaultLinuxDoSubscriptions = normalizeOptionalDefaultSubscriptions(req.AuthSourceDefaultLinuxDoSubscriptions)
 	req.AuthSourceDefaultOIDCSubscriptions = normalizeOptionalDefaultSubscriptions(req.AuthSourceDefaultOIDCSubscriptions)
 	req.AuthSourceDefaultWeChatSubscriptions = normalizeOptionalDefaultSubscriptions(req.AuthSourceDefaultWeChatSubscriptions)
+	req.AuthSourceDefaultGitHubSubscriptions = normalizeOptionalDefaultSubscriptions(req.AuthSourceDefaultGitHubSubscriptions)
+	req.AuthSourceDefaultGoogleSubscriptions = normalizeOptionalDefaultSubscriptions(req.AuthSourceDefaultGoogleSubscriptions)
 	req.AuthSourceDefaultDingTalkSubscriptions = normalizeOptionalDefaultSubscriptions(req.AuthSourceDefaultDingTalkSubscriptions)
+	req.AuthSourceDefaultUniFedSubscriptions = normalizeOptionalDefaultSubscriptions(req.AuthSourceDefaultUniFedSubscriptions)
 
 	// SMTP 配置保护：如果请求中 smtp_host 为空但数据库中已有配置，则保留已有 SMTP 配置
 	// 防止前端加载设置失败时空表单覆盖已保存的 SMTP 配置
@@ -968,6 +985,34 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		req.DingTalkConnectSyncDeptAttrName = strings.TrimSpace(req.DingTalkConnectSyncDeptAttrName)
 		if req.DingTalkConnectSyncDeptAttrName == "" {
 			req.DingTalkConnectSyncDeptAttrName = "钉钉部门"
+		}
+	}
+
+	// UniFed (Universe Federation) validation
+	req.UniFedConnectInstanceURL = strings.TrimSpace(req.UniFedConnectInstanceURL)
+	req.UniFedConnectRedirectURL = strings.TrimSpace(req.UniFedConnectRedirectURL)
+	if req.UniFedConnectEnabled {
+		if req.UniFedConnectInstanceURL == "" {
+			req.UniFedConnectInstanceURL = previousSettings.UniFedConnectInstanceURL
+		}
+		if req.UniFedConnectRedirectURL == "" {
+			req.UniFedConnectRedirectURL = previousSettings.UniFedConnectRedirectURL
+		}
+		if req.UniFedConnectInstanceURL == "" {
+			response.BadRequest(c, "UniFed Instance URL is required when enabled")
+			return
+		}
+		if err := config.ValidateAbsoluteHTTPURL(req.UniFedConnectInstanceURL); err != nil {
+			response.BadRequest(c, "UniFed Instance URL must be an absolute http(s) URL")
+			return
+		}
+		if req.UniFedConnectRedirectURL == "" {
+			response.BadRequest(c, "UniFed Redirect URL is required when enabled")
+			return
+		}
+		if err := config.ValidateAbsoluteHTTPURL(req.UniFedConnectRedirectURL); err != nil {
+			response.BadRequest(c, "UniFed Redirect URL must be an absolute http(s) URL")
+			return
 		}
 	}
 
@@ -1532,6 +1577,9 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		DingTalkConnectSyncCorpEmailAttrName:   req.DingTalkConnectSyncCorpEmailAttrName,
 		DingTalkConnectSyncDisplayNameAttrName: req.DingTalkConnectSyncDisplayNameAttrName,
 		DingTalkConnectSyncDeptAttrName:        req.DingTalkConnectSyncDeptAttrName,
+		UniFedConnectEnabled:                   req.UniFedConnectEnabled,
+		UniFedConnectInstanceURL:               req.UniFedConnectInstanceURL,
+		UniFedConnectRedirectURL:               req.UniFedConnectRedirectURL,
 		WeChatConnectEnabled:                   req.WeChatConnectEnabled,
 		WeChatConnectAppID:                     req.WeChatConnectAppID,
 		WeChatConnectAppSecret:                 req.WeChatConnectAppSecret,
@@ -1878,6 +1926,14 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 			GrantOnFirstBind: boolValueOrDefault(req.AuthSourceDefaultDingTalkGrantOnFirstBind, previousAuthSourceDefaults.DingTalk.GrantOnFirstBind),
 			PlatformQuotas:   platformQuotasValueOrDefault(req.AuthSourceDingTalkPlatformQuotas, previousAuthSourceDefaults.DingTalk.PlatformQuotas),
 		},
+		UniFed: service.ProviderDefaultGrantSettings{
+			Balance:          float64ValueOrDefault(req.AuthSourceDefaultUniFedBalance, previousAuthSourceDefaults.UniFed.Balance),
+			Concurrency:      intValueOrDefault(req.AuthSourceDefaultUniFedConcurrency, previousAuthSourceDefaults.UniFed.Concurrency),
+			Subscriptions:    defaultSubscriptionsValueOrDefault(req.AuthSourceDefaultUniFedSubscriptions, previousAuthSourceDefaults.UniFed.Subscriptions),
+			GrantOnSignup:    boolValueOrDefault(req.AuthSourceDefaultUniFedGrantOnSignup, previousAuthSourceDefaults.UniFed.GrantOnSignup),
+			GrantOnFirstBind: boolValueOrDefault(req.AuthSourceDefaultUniFedGrantOnFirstBind, previousAuthSourceDefaults.UniFed.GrantOnFirstBind),
+			PlatformQuotas:   platformQuotasValueOrDefault(req.AuthSourceUniFedPlatformQuotas, previousAuthSourceDefaults.UniFed.PlatformQuotas),
+		},
 		ForceEmailOnThirdPartySignup: boolValueOrDefault(req.ForceEmailOnThirdPartySignup, previousAuthSourceDefaults.ForceEmailOnThirdPartySignup),
 	}
 	if err := h.settingService.UpdateSettingsWithAuthSourceDefaults(c.Request.Context(), settings, authSourceDefaults); err != nil {
@@ -2005,6 +2061,9 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		DingTalkConnectSyncCorpEmailAttrName:   updatedSettings.DingTalkConnectSyncCorpEmailAttrName,
 		DingTalkConnectSyncDisplayNameAttrName: updatedSettings.DingTalkConnectSyncDisplayNameAttrName,
 		DingTalkConnectSyncDeptAttrName:        updatedSettings.DingTalkConnectSyncDeptAttrName,
+		UniFedConnectEnabled:                   updatedSettings.UniFedConnectEnabled,
+		UniFedConnectInstanceURL:               updatedSettings.UniFedConnectInstanceURL,
+		UniFedConnectRedirectURL:               updatedSettings.UniFedConnectRedirectURL,
 		WeChatConnectEnabled:                   updatedSettings.WeChatConnectEnabled,
 		WeChatConnectAppID:                     updatedSettings.WeChatConnectAppID,
 		WeChatConnectAppSecretConfigured:       updatedSettings.WeChatConnectAppSecretConfigured,
@@ -2670,6 +2729,7 @@ func appendAuthSourceDefaultChanges(changed []string, before *service.AuthSource
 		{name: "github", before: before.GitHub, after: after.GitHub},
 		{name: "google", before: before.Google, after: after.Google},
 		{name: "dingtalk", before: before.DingTalk, after: after.DingTalk},
+		{name: "unifed", before: before.UniFed, after: after.UniFed},
 	}
 	for _, field := range fields {
 		if field.before.Balance != field.after.Balance {
@@ -2794,6 +2854,11 @@ func systemSettingsResponseData(settings dto.SystemSettings, authSourceDefaults 
 	data["auth_source_default_dingtalk_subscriptions"] = authSourceDefaults.DingTalk.Subscriptions
 	data["auth_source_default_dingtalk_grant_on_signup"] = authSourceDefaults.DingTalk.GrantOnSignup
 	data["auth_source_default_dingtalk_grant_on_first_bind"] = authSourceDefaults.DingTalk.GrantOnFirstBind
+	data["auth_source_default_unifed_balance"] = authSourceDefaults.UniFed.Balance
+	data["auth_source_default_unifed_concurrency"] = authSourceDefaults.UniFed.Concurrency
+	data["auth_source_default_unifed_subscriptions"] = authSourceDefaults.UniFed.Subscriptions
+	data["auth_source_default_unifed_grant_on_signup"] = authSourceDefaults.UniFed.GrantOnSignup
+	data["auth_source_default_unifed_grant_on_first_bind"] = authSourceDefaults.UniFed.GrantOnFirstBind
 	data["auth_source_default_oidc_balance"] = authSourceDefaults.OIDC.Balance
 	data["auth_source_default_oidc_concurrency"] = authSourceDefaults.OIDC.Concurrency
 	data["auth_source_default_oidc_subscriptions"] = authSourceDefaults.OIDC.Subscriptions
@@ -2821,6 +2886,7 @@ func systemSettingsResponseData(settings dto.SystemSettings, authSourceDefaults 
 	data["auth_source_default_github_platform_quotas"] = authSourceDefaults.GitHub.PlatformQuotas
 	data["auth_source_default_google_platform_quotas"] = authSourceDefaults.Google.PlatformQuotas
 	data["auth_source_default_dingtalk_platform_quotas"] = authSourceDefaults.DingTalk.PlatformQuotas
+	data["auth_source_default_unifed_platform_quotas"] = authSourceDefaults.UniFed.PlatformQuotas
 	data["force_email_on_third_party_signup"] = authSourceDefaults.ForceEmailOnThirdPartySignup
 
 	return data

@@ -64,7 +64,8 @@ export type AuthSourceType =
   | "wechat"
   | "github"
   | "google"
-  | "dingtalk";
+  | "dingtalk"
+  | "unifed";
 
 export interface AuthSourceDefaultsValue {
   balance: number;
@@ -109,6 +110,7 @@ const AUTH_SOURCE_TYPES: AuthSourceType[] = [
   "github",
   "google",
   "dingtalk",
+  "unifed",
 ];
 const AUTH_SOURCE_DEFAULT_BALANCE = 0;
 const AUTH_SOURCE_DEFAULT_CONCURRENCY = 5;
@@ -404,6 +406,11 @@ export interface SystemSettings {
   auth_source_default_dingtalk_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_dingtalk_grant_on_signup?: boolean;
   auth_source_default_dingtalk_grant_on_first_bind?: boolean;
+  auth_source_default_unifed_balance?: number;
+  auth_source_default_unifed_concurrency?: number;
+  auth_source_default_unifed_subscriptions?: DefaultSubscriptionSetting[];
+  auth_source_default_unifed_grant_on_signup?: boolean;
+  auth_source_default_unifed_grant_on_first_bind?: boolean;
   auth_source_default_github_balance?: number;
   auth_source_default_github_concurrency?: number;
   auth_source_default_github_subscriptions?: DefaultSubscriptionSetting[];
@@ -424,6 +431,7 @@ export interface SystemSettings {
   auth_source_default_github_platform_quotas?: DefaultPlatformQuotasMap;
   auth_source_default_google_platform_quotas?: DefaultPlatformQuotasMap;
   auth_source_default_dingtalk_platform_quotas?: DefaultPlatformQuotasMap;
+  auth_source_default_unifed_platform_quotas?: DefaultPlatformQuotasMap;
   // OEM settings
   site_name: string;
   site_logo: string;
@@ -475,6 +483,11 @@ export interface SystemSettings {
   dingtalk_connect_sync_corp_email_attr_name: string;
   dingtalk_connect_sync_display_name_attr_name: string;
   dingtalk_connect_sync_dept_attr_name: string;
+
+  // UniFed Connect OAuth settings
+  unifed_connect_enabled: boolean;
+  unifed_connect_instance_url: string;
+  unifed_connect_redirect_url: string;
 
   // WeChat Connect OAuth settings
   wechat_connect_enabled: boolean;
@@ -671,6 +684,11 @@ export interface UpdateSettingsRequest {
   auth_source_default_dingtalk_subscriptions?: DefaultSubscriptionSetting[];
   auth_source_default_dingtalk_grant_on_signup?: boolean;
   auth_source_default_dingtalk_grant_on_first_bind?: boolean;
+  auth_source_default_unifed_balance?: number;
+  auth_source_default_unifed_concurrency?: number;
+  auth_source_default_unifed_subscriptions?: DefaultSubscriptionSetting[];
+  auth_source_default_unifed_grant_on_signup?: boolean;
+  auth_source_default_unifed_grant_on_first_bind?: boolean;
   auth_source_default_github_balance?: number;
   auth_source_default_github_concurrency?: number;
   auth_source_default_github_subscriptions?: DefaultSubscriptionSetting[];
@@ -691,6 +709,7 @@ export interface UpdateSettingsRequest {
   auth_source_default_github_platform_quotas?: DefaultPlatformQuotasMap;
   auth_source_default_google_platform_quotas?: DefaultPlatformQuotasMap;
   auth_source_default_dingtalk_platform_quotas?: DefaultPlatformQuotasMap;
+  auth_source_default_unifed_platform_quotas?: DefaultPlatformQuotasMap;
   site_name?: string;
   site_logo?: string;
   site_subtitle?: string;
@@ -735,6 +754,9 @@ export interface UpdateSettingsRequest {
   dingtalk_connect_sync_corp_email_attr_name?: string;
   dingtalk_connect_sync_display_name_attr_name?: string;
   dingtalk_connect_sync_dept_attr_name?: string;
+  unifed_connect_enabled?: boolean;
+  unifed_connect_instance_url?: string;
+  unifed_connect_redirect_url?: string;
   wechat_connect_enabled?: boolean;
   wechat_connect_app_id?: string;
   wechat_connect_app_secret?: string;

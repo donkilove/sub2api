@@ -68,6 +68,14 @@ describe("admin settings auth source defaults helpers", () => {
       grant_on_first_bind: false,
       platform_quotas: allNullQuotas,
     });
+    expect(state.unifed).toEqual({
+      balance: 0,
+      concurrency: 5,
+      subscriptions: [],
+      grant_on_signup: false,
+      grant_on_first_bind: false,
+      platform_quotas: allNullQuotas,
+    });
   });
 
   it("defaults grant-on-signup to disabled when settings are missing", () => {
@@ -77,6 +85,7 @@ describe("admin settings auth source defaults helpers", () => {
     expect(state.linuxdo.grant_on_signup).toBe(false);
     expect(state.oidc.grant_on_signup).toBe(false);
     expect(state.wechat.grant_on_signup).toBe(false);
+    expect(state.unifed.grant_on_signup).toBe(false);
   });
 
   it("reads nested platform_quotas from settings into auth source state", () => {
@@ -158,6 +167,14 @@ describe("admin settings auth source defaults helpers", () => {
         grant_on_first_bind: false,
         platform_quotas: {},
       },
+      unifed: {
+        balance: 0,
+        concurrency: 5,
+        subscriptions: [],
+        grant_on_signup: false,
+        grant_on_first_bind: false,
+        platform_quotas: {},
+      },
     });
 
     expect(payload).toMatchObject({
@@ -194,6 +211,7 @@ describe("admin settings auth source defaults helpers", () => {
       auth_source_default_github_platform_quotas: allNullQuotas,
       auth_source_default_google_platform_quotas: allNullQuotas,
       auth_source_default_dingtalk_platform_quotas: allNullQuotas,
+      auth_source_default_unifed_platform_quotas: allNullQuotas,
     });
   });
 
@@ -217,6 +235,7 @@ describe("admin settings auth source defaults helpers", () => {
       github:  { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
       google:  { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
       dingtalk: { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
+      unifed: { balance: 0, concurrency: 5, subscriptions: [], grant_on_signup: false, grant_on_first_bind: false, platform_quotas: {} },
     });
 
     const emailQuotas = (payload as Record<string, unknown>)["auth_source_default_email_platform_quotas"] as DefaultPlatformQuotasMap;
