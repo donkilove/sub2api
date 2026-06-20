@@ -548,6 +548,19 @@ export default {
     emailOAuth: {
       signIn: 'Continue with {providerName}'
     },
+    unifed: {
+      signIn: 'Continue with Universe Federation',
+      callbackTitle: 'Signing you in with Universe Federation',
+      callbackProcessing: 'Completing login, please wait...',
+      callbackHint: 'If you are not redirected automatically, go back to the login page and try again.',
+      callbackMissingToken: 'Missing login token, please try again.',
+      backToLogin: 'Back to Login',
+      invitationRequired: 'This Universe Federation account is not yet registered. The site requires an invitation code — please enter one to complete registration.',
+      invalidPendingToken: 'The registration token has expired. Please sign in with Universe Federation again.',
+      completeRegistration: 'Complete Registration',
+      completing: 'Completing registration…',
+      completeRegistrationFailed: 'Registration failed. Please check your invitation code and try again.'
+    },
     oidc: {
       signIn: 'Continue with {providerName}',
       callbackTitle: 'Signing you in with {providerName}',
@@ -595,6 +608,7 @@ export default {
     linuxdoCallbackPageTitle: 'LinuxDo Sign-In Callback',
     dingtalkCallbackPageTitle: 'DingTalk Sign-In Callback',
     oidcCallbackPageTitle: 'OIDC Sign-In Callback',
+    unifedCallbackPageTitle: 'Universe Federation Sign-In Callback',
     oauthCallbackPageTitle: 'OAuth Callback',
     wechatProviderName: 'WeChat',
     wechatCallbackPageTitle: 'WeChat Sign-In Callback',
@@ -1358,6 +1372,7 @@ export default {
         dingtalk: 'DingTalk',
         oidc: '{providerName}',
         wechat: 'WeChat',
+        unifed: 'Universe Federation',
       },
       notes: {
         emailManagedFromProfile: 'Primary email is managed in the profile form',
@@ -5595,6 +5610,20 @@ export default {
         quickSetCopy: 'Generate & Copy (current site)',
         redirectUrlSetAndCopied: 'Redirect URL generated and copied to clipboard'
       },
+      unifed: {
+        title: 'Universe Federation Login',
+        description: 'Configure Universe Federation / MiAuth for Sub2API end-user login',
+        enable: 'Enable Universe Federation Login',
+        enableHint: 'Show Universe Federation login on the login/register pages',
+        instanceUrl: 'Instance URL',
+        instanceUrlPlaceholder: 'https://dc.hhhl.cc',
+        instanceUrlHint: 'MiAuth instance origin. The community instance is https://dc.hhhl.cc',
+        redirectUrl: 'Backend Callback URL',
+        redirectUrlPlaceholder: 'https://your-domain.com/api/v1/auth/oauth/unifed/callback',
+        redirectUrlHint: 'MiAuth callback URL; use the backend /auth/oauth/unifed/callback absolute http(s) URL',
+        quickSetCopy: 'Generate & Copy (current site)',
+        redirectUrlSetAndCopied: 'Redirect URL generated and copied to clipboard'
+      },
       dingtalk: {
         title: 'DingTalk Login',
         description: 'Configure DingTalk OAuth for Sub2API end-user login',
@@ -6458,6 +6487,10 @@ export default {
           wechat: {
             title: 'WeChat signup',
             description: 'Default quota grants for WeChat signups.'
+          },
+          unifed: {
+            title: 'Universe Federation signup',
+            description: 'Default quota grants for Universe Federation signups.'
           }
         },
         grantOnFirstBindLabel: 'Grant on first bind',

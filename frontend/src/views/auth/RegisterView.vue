@@ -279,6 +279,12 @@
           :aff-code="formData.aff_code"
           :show-divider="false"
         />
+        <UniFedOAuthSection
+          v-if="unifedOAuthEnabled"
+          :disabled="registrationActionDisabled"
+          :aff-code="formData.aff_code"
+          :show-divider="false"
+        />
       </div>
     </div>
 
@@ -305,6 +311,7 @@ import { AuthLayout } from '@/components/layout'
 import LinuxDoOAuthSection from '@/components/auth/LinuxDoOAuthSection.vue'
 import OidcOAuthSection from '@/components/auth/OidcOAuthSection.vue'
 import WechatOAuthSection from '@/components/auth/WechatOAuthSection.vue'
+import UniFedOAuthSection from '@/components/auth/UniFedOAuthSection.vue'
 import EmailOAuthButtons from '@/components/auth/EmailOAuthButtons.vue'
 import LoginAgreementPrompt from '@/components/auth/LoginAgreementPrompt.vue'
 import Icon from '@/components/icons/Icon.vue'
@@ -358,6 +365,7 @@ const linuxdoOAuthEnabled = ref<boolean>(false)
 const wechatOAuthEnabled = ref<boolean>(false)
 const oidcOAuthEnabled = ref<boolean>(false)
 const oidcOAuthProviderName = ref<string>('OIDC')
+const unifedOAuthEnabled = ref<boolean>(false)
 const githubOAuthEnabled = ref<boolean>(false)
 const googleOAuthEnabled = ref<boolean>(false)
 const registrationEmailSuffixWhitelist = ref<string[]>([])
@@ -422,6 +430,7 @@ const showOAuthLogin = computed(
     linuxdoOAuthEnabled.value ||
     wechatOAuthEnabled.value ||
     oidcOAuthEnabled.value ||
+    unifedOAuthEnabled.value ||
     githubOAuthEnabled.value ||
     googleOAuthEnabled.value
 )
@@ -466,6 +475,7 @@ onMounted(async () => {
     wechatOAuthEnabled.value = isWeChatWebOAuthEnabled(settings)
     oidcOAuthEnabled.value = settings.oidc_oauth_enabled
     oidcOAuthProviderName.value = settings.oidc_oauth_provider_name || 'OIDC'
+    unifedOAuthEnabled.value = settings.unifed_oauth_enabled ?? false
     githubOAuthEnabled.value = settings.github_oauth_enabled
     googleOAuthEnabled.value = settings.google_oauth_enabled
     registrationEmailSuffixWhitelist.value = normalizeRegistrationEmailSuffixWhitelist(

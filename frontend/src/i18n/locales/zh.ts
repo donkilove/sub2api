@@ -544,6 +544,19 @@ export default {
         retry: '重新登录'
       }
     },
+    unifed: {
+      signIn: '使用 Universe Federation 登录',
+      callbackTitle: '正在完成 Universe Federation 登录',
+      callbackProcessing: '正在验证登录信息，请稍候...',
+      callbackHint: '如果页面未自动跳转，请返回登录页重试。',
+      callbackMissingToken: '登录信息缺失，请返回重试。',
+      backToLogin: '返回登录',
+      invitationRequired: '该 Universe Federation 账号尚未注册，站点已开启邀请码注册，请输入邀请码以完成注册。',
+      invalidPendingToken: '注册凭证已失效，请重新使用 Universe Federation 登录。',
+      completeRegistration: '完成注册',
+      completing: '正在完成注册...',
+      completeRegistrationFailed: '注册失败，请检查邀请码后重试。'
+    },
     emailOAuth: {
       signIn: '使用 {providerName} 登录'
     },
@@ -593,6 +606,7 @@ export default {
     linuxdoCallbackPageTitle: 'LinuxDo 登录回调',
     dingtalkCallbackPageTitle: '钉钉登录回调',
     oidcCallbackPageTitle: 'OIDC 登录回调',
+    unifedCallbackPageTitle: 'Universe Federation 登录回调',
     oauthCallbackPageTitle: 'OAuth 回调',
     wechatProviderName: '微信',
     wechatCallbackPageTitle: '微信登录回调',
@@ -1362,6 +1376,7 @@ export default {
         dingtalk: '钉钉',
         oidc: '{providerName}',
         wechat: '微信',
+        unifed: 'Universe Federation',
       },
       notes: {
         emailManagedFromProfile: '主邮箱在资料表单中管理',
@@ -5754,6 +5769,20 @@ export default {
         quickSetCopy: '使用当前站点生成并复制',
         redirectUrlSetAndCopied: '已使用当前站点生成回调地址并复制到剪贴板'
       },
+      unifed: {
+        title: 'Universe Federation 登录',
+        description: '配置 Universe Federation / MiAuth，用于 Sub2API 用户登录',
+        enable: '启用 Universe Federation 登录',
+        enableHint: '在登录/注册页面显示 Universe Federation 登录入口',
+        instanceUrl: '实例地址',
+        instanceUrlPlaceholder: 'https://dc.hhhl.cc',
+        instanceUrlHint: 'MiAuth 实例根地址，当前社区实例为 https://dc.hhhl.cc',
+        redirectUrl: '后端回调地址',
+        redirectUrlPlaceholder: 'https://your-domain.com/api/v1/auth/oauth/unifed/callback',
+        redirectUrlHint: '传给 MiAuth 的 callback，需为后端 /auth/oauth/unifed/callback 完整 http(s) URL',
+        quickSetCopy: '使用当前站点生成并复制',
+        redirectUrlSetAndCopied: '已使用当前站点生成回调地址并复制到剪贴板'
+      },
       dingtalk: {
         title: '钉钉登录',
         description: '配置钉钉 OAuth，用于 Sub2API 用户登录',
@@ -6613,6 +6642,10 @@ export default {
           wechat: {
             title: '微信登录',
             description: '适用于微信第三方注册的新用户默认配额。'
+          },
+          unifed: {
+            title: 'Universe Federation 登录',
+            description: '适用于 Universe Federation 第三方注册的新用户默认配额。'
           }
         },
         grantOnFirstBindLabel: '首次绑定时授权',

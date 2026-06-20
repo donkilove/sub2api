@@ -139,6 +139,16 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/auth/unifed/callback',
+    name: 'UniFedOAuthCallback',
+    component: () => import('@/views/auth/UniFedCallbackView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'Universe Federation OAuth Callback',
+      titleKey: 'auth.unifedCallbackPageTitle'
+    }
+  },
+  {
     path: '/forgot-password',
     name: 'ForgotPassword',
     component: () => import('@/views/auth/ForgotPasswordView.vue'),
@@ -699,6 +709,7 @@ const BACKEND_MODE_CALLBACK_PATHS = [
   '/auth/oidc/callback',
   '/auth/wechat/callback',
   '/auth/wechat/payment/callback',
+  '/auth/unifed/callback',
 ]
 const BACKEND_MODE_PENDING_AUTH_PATHS = ['/register', '/email-verify']
 

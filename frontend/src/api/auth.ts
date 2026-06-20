@@ -571,6 +571,17 @@ export async function completeLinuxDoOAuthRegistration(
 }
 
 /**
+ * Complete Universe Federation OAuth registration by supplying an invitation code
+ */
+export async function completeUniFedOAuthRegistration(
+  invitationCode: string,
+  decision?: OAuthAdoptionDecision,
+  affiliateCode?: string
+): Promise<OAuthTokenResponse> {
+  return createPendingUniFedOAuthAccount(invitationCode, decision, affiliateCode)
+}
+
+/**
  * Complete OIDC OAuth registration by supplying an invitation code
  * @param invitationCode - Invitation code entered by the user
  * @returns Token pair on success
@@ -592,7 +603,7 @@ export async function completeWeChatOAuthRegistration(
 }
 
 async function createPendingOAuthAccount(
-  provider: 'linuxdo' | 'oidc' | 'wechat' | 'dingtalk',
+  provider: 'linuxdo' | 'oidc' | 'wechat' | 'dingtalk' | 'unifed',
   invitationCode: string,
   decision?: OAuthAdoptionDecision,
   affiliateCode?: string
@@ -639,6 +650,14 @@ export async function createPendingDingTalkOAuthAccount(
   affiliateCode?: string
 ): Promise<PendingOAuthCreateAccountResponse> {
   return createPendingOAuthAccount('dingtalk', invitationCode, decision, affiliateCode)
+}
+
+export async function createPendingUniFedOAuthAccount(
+  invitationCode: string,
+  decision?: OAuthAdoptionDecision,
+  affiliateCode?: string
+): Promise<PendingOAuthCreateAccountResponse> {
+  return createPendingOAuthAccount('unifed', invitationCode, decision, affiliateCode)
 }
 
 export async function completePendingOAuthBindLogin(
@@ -692,7 +711,9 @@ export const authAPI = {
   completeLinuxDoOAuthRegistration,
   completeOIDCOAuthRegistration,
   completeWeChatOAuthRegistration,
-  createPendingDingTalkOAuthAccount
+  createPendingDingTalkOAuthAccount,
+  createPendingUniFedOAuthAccount,
+  completeUniFedOAuthRegistration
 }
 
 export default authAPI

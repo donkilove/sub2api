@@ -37,7 +37,7 @@ export interface NotifyEmailEntry {
 
 // ==================== User & Auth Types ====================
 
-export type UserAuthProvider = 'email' | 'linuxdo' | 'oidc' | 'wechat' | 'github' | 'google' | 'dingtalk'
+export type UserAuthProvider = 'email' | 'linuxdo' | 'oidc' | 'wechat' | 'github' | 'google' | 'dingtalk' | 'unifed'
 
 export interface UserAuthBindingStatus {
   bound?: boolean
@@ -87,6 +87,7 @@ export interface User {
   linuxdo_bound?: boolean
   oidc_bound?: boolean
   wechat_bound?: boolean
+  unifed_bound?: boolean
   role: 'admin' | 'user' // User role for authorization
   balance: number // User balance for API usage
   concurrency: number // Allowed concurrent requests
@@ -228,6 +229,7 @@ export interface PublicSettings {
   oidc_oauth_provider_name: string
   github_oauth_enabled: boolean
   google_oauth_enabled: boolean
+  unifed_oauth_enabled: boolean
   backend_mode_enabled: boolean
   version: string
   balance_low_notify_enabled: boolean

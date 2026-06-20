@@ -369,6 +369,10 @@ function resolvePendingOAuthCallbackRoute(provider: string): string {
       return '/auth/oidc/callback'
     case 'wechat':
       return '/auth/wechat/callback'
+    case 'dingtalk':
+      return '/auth/dingtalk/callback'
+    case 'unifed':
+      return '/auth/unifed/callback'
     default:
       return '/auth/callback'
   }
