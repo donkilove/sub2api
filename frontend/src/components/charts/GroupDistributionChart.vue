@@ -226,29 +226,35 @@ const doughnutOptions = computed(() => ({
   }
 }))
 
-const formatTokens = (value: number): string => {
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(2)}B`
-  } else if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(2)}M`
-  } else if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(2)}K`
+const normalizeNumber = (value: number | null | undefined): number => (
+  typeof value === 'number' && Number.isFinite(value) ? value : 0
+)
+
+const formatTokens = (value: number | null | undefined): string => {
+  const normalized = normalizeNumber(value)
+  if (normalized >= 1_000_000_000) {
+    return `${(normalized / 1_000_000_000).toFixed(2)}B`
+  } else if (normalized >= 1_000_000) {
+    return `${(normalized / 1_000_000).toFixed(2)}M`
+  } else if (normalized >= 1_000) {
+    return `${(normalized / 1_000).toFixed(2)}K`
   }
-  return value.toLocaleString()
+  return normalized.toLocaleString()
 }
 
-const formatNumber = (value: number): string => {
-  return value.toLocaleString()
+const formatNumber = (value: number | null | undefined): string => {
+  return normalizeNumber(value).toLocaleString()
 }
 
-const formatCost = (value: number): string => {
-  if (value >= 1000) {
-    return (value / 1000).toFixed(2) + 'K'
-  } else if (value >= 1) {
-    return value.toFixed(2)
-  } else if (value >= 0.01) {
-    return value.toFixed(3)
+const formatCost = (value: number | null | undefined): string => {
+  const normalized = normalizeNumber(value)
+  if (normalized >= 1000) {
+    return (normalized / 1000).toFixed(2) + 'K'
+  } else if (normalized >= 1) {
+    return normalized.toFixed(2)
+  } else if (normalized >= 0.01) {
+    return normalized.toFixed(3)
   }
-  return value.toFixed(4)
+  return normalized.toFixed(4)
 }
 </script>

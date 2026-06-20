@@ -28,8 +28,9 @@ export function isImageUsage(row: Pick<ImageBillingRow, 'image_count' | 'billing
   return (row?.image_count ?? 0) > 0 && row?.billing_mode !== BILLING_MODE_TOKEN
 }
 
-export function getDisplayBillingMode(row: Pick<ImageBillingRow, 'billing_mode' | 'image_count'> | null | undefined): string | null | undefined {
-  return row?.billing_mode
+export function getDisplayBillingMode(row: Pick<ImageBillingRow, 'billing_mode' | 'image_count'> | null | undefined): string {
+  if (isImageUsage(row)) return BILLING_MODE_IMAGE
+  return row?.billing_mode ?? BILLING_MODE_TOKEN
 }
 
 export function imageUnitPrice(row: Pick<ImageBillingRow, 'image_count' | 'total_cost'> | null): number {
