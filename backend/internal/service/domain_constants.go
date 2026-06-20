@@ -119,6 +119,9 @@ const WeChatConnectSyntheticEmailDomain = "@wechat-connect.invalid"
 // DingTalkConnectSyntheticEmailDomain 是 DingTalk Connect 用户的合成邮箱后缀（RFC 保留域名）。
 const DingTalkConnectSyntheticEmailDomain = "@dingtalk-connect.invalid"
 
+// UniFedConnectSyntheticEmailDomain 是 Universe Federation (Sharkey/Misskey) 用户的合成邮箱后缀。
+const UniFedConnectSyntheticEmailDomain = "@unifed-connect.invalid"
+
 // Setting keys
 const (
 	// 注册设置
@@ -186,6 +189,11 @@ const (
 	SettingKeyDingTalkConnectSyncCorpEmailAttrName   = "dingtalk_connect_sync_corp_email_attr_name"
 	SettingKeyDingTalkConnectSyncDisplayNameAttrName = "dingtalk_connect_sync_display_name_attr_name"
 	SettingKeyDingTalkConnectSyncDeptAttrName        = "dingtalk_connect_sync_dept_attr_name"
+
+	// Universe Federation (Sharkey/Misskey MiAuth) OAuth 登录设置
+	SettingKeyUniFedConnectEnabled     = "unifed_connect_enabled"
+	SettingKeyUniFedConnectInstanceURL = "unifed_connect_instance_url"
+	SettingKeyUniFedConnectRedirectURL = "unifed_connect_redirect_url"
 
 	// WeChat Connect OAuth 登录设置
 	SettingKeyWeChatConnectEnabled             = "wechat_connect_enabled"
@@ -299,7 +307,15 @@ const (
 	SettingKeyAuthSourceDefaultDingTalkSubscriptions    = "auth_source_default_dingtalk_subscriptions"
 	SettingKeyAuthSourceDefaultDingTalkGrantOnSignup    = "auth_source_default_dingtalk_grant_on_signup"
 	SettingKeyAuthSourceDefaultDingTalkGrantOnFirstBind = "auth_source_default_dingtalk_grant_on_first_bind"
-	SettingKeyForceEmailOnThirdPartySignup              = "force_email_on_third_party_signup"
+
+	// Universe Federation auth source defaults
+	SettingKeyAuthSourceDefaultUniFedBalance          = "auth_source_default_unifed_balance"
+	SettingKeyAuthSourceDefaultUniFedConcurrency      = "auth_source_default_unifed_concurrency"
+	SettingKeyAuthSourceDefaultUniFedSubscriptions    = "auth_source_default_unifed_subscriptions"
+	SettingKeyAuthSourceDefaultUniFedGrantOnSignup    = "auth_source_default_unifed_grant_on_signup"
+	SettingKeyAuthSourceDefaultUniFedGrantOnFirstBind = "auth_source_default_unifed_grant_on_first_bind"
+
+	SettingKeyForceEmailOnThirdPartySignup = "force_email_on_third_party_signup"
 
 	// 管理员 API Key
 	SettingKeyAdminAPIKey = "admin_api_key" // 全局管理员 API Key（用于外部系统集成）

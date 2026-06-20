@@ -42,6 +42,27 @@ func (*announcementRepoStub) ListActive(context.Context, time.Time) ([]Announcem
 	return nil, nil
 }
 
+func (s *announcementRepoStub) SetPinned(_ context.Context, id int64, pinned bool) error {
+	if s.item != nil && s.item.ID == id {
+		s.item.IsPinned = pinned
+	}
+	return nil
+}
+
+func (s *announcementRepoStub) GetPinned(context.Context) (*Announcement, error) {
+	if s.item != nil && s.item.IsPinned {
+		return s.item, nil
+	}
+	return nil, nil
+}
+
+func (s *announcementRepoStub) ListRecent(context.Context, int, int64) ([]Announcement, error) {
+	if s.item == nil {
+		return nil, nil
+	}
+	return []Announcement{*s.item}, nil
+}
+
 func TestAnnouncementServiceCreateRejectsEqualStartEndTimes(t *testing.T) {
 	repo := &announcementRepoStub{}
 	svc := NewAnnouncementService(repo, nil, nil, nil)

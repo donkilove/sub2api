@@ -240,6 +240,7 @@ type AuthSourceDefaultSettings struct {
 	GitHub                       ProviderDefaultGrantSettings
 	Google                       ProviderDefaultGrantSettings
 	DingTalk                     ProviderDefaultGrantSettings
+	UniFed                       ProviderDefaultGrantSettings
 	ForceEmailOnThirdPartySignup bool
 }
 
@@ -319,6 +320,15 @@ var (
 		grantOnFirstBind: SettingKeyAuthSourceDefaultDingTalkGrantOnFirstBind,
 		platformQuotas:   SettingKeyAuthSourcePlatformQuotas("dingtalk"),
 	}
+	uniFedAuthSourceDefaultKeys = authSourceDefaultKeySet{
+		source:           "unifed",
+		balance:          SettingKeyAuthSourceDefaultUniFedBalance,
+		concurrency:      SettingKeyAuthSourceDefaultUniFedConcurrency,
+		subscriptions:    SettingKeyAuthSourceDefaultUniFedSubscriptions,
+		grantOnSignup:    SettingKeyAuthSourceDefaultUniFedGrantOnSignup,
+		grantOnFirstBind: SettingKeyAuthSourceDefaultUniFedGrantOnFirstBind,
+		platformQuotas:   SettingKeyAuthSourcePlatformQuotas("unifed"),
+	}
 )
 
 const (
@@ -338,6 +348,7 @@ const (
 	defaultGoogleOAuthUserInfo   = "https://openidconnect.googleapis.com/v1/userinfo"
 	defaultGoogleOAuthScopes     = "openid email profile"
 	defaultGoogleOAuthFrontend   = "/auth/oauth/callback"
+	defaultUniFedConnectInstance = "https://dc.hhhl.cc"
 	defaultLoginAgreementMode    = "modal"
 	defaultLoginAgreementDate    = "2026-03-31"
 )
@@ -799,6 +810,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		SettingKeyCustomMenuItems,
 		SettingKeyCustomEndpoints,
 		SettingKeyLinuxDoConnectEnabled,
+		SettingKeyUniFedConnectEnabled,
 		SettingKeyDingTalkConnectEnabled,
 		SettingKeyWeChatConnectEnabled,
 		SettingKeyWeChatConnectAppID,
@@ -868,6 +880,12 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 	if oidcProviderName == "" {
 		oidcProviderName = "OIDC"
 	}
+	unifedEnabled := false
+	if raw, ok := settings[SettingKeyUniFedConnectEnabled]; ok {
+		unifedEnabled = raw == "true"
+	} else {
+		unifedEnabled = s.cfg != nil && s.cfg.UniFed.Enabled
+	}
 	gitHubEnabled := s.emailOAuthPublicEnabled(settings, "github")
 	googleEnabled := s.emailOAuthPublicEnabled(settings, "google")
 	weChatEnabled, weChatOpenEnabled, weChatMPEnabled, weChatMobileEnabled := s.weChatOAuthCapabilitiesFromSettings(settings)
@@ -933,6 +951,7 @@ func (s *SettingService) GetPublicSettings(ctx context.Context) (*PublicSettings
 		PaymentEnabled:                   settings[SettingPaymentEnabled] == "true",
 		OIDCOAuthEnabled:                 oidcEnabled,
 		OIDCOAuthProviderName:            oidcProviderName,
+		UniFedOAuthEnabled:               unifedEnabled,
 		GitHubOAuthEnabled:               gitHubEnabled,
 		GoogleOAuthEnabled:               googleEnabled,
 		BalanceLowNotifyEnabled:          settings[SettingKeyBalanceLowNotifyEnabled] == "true",
@@ -1247,13 +1266,15 @@ type PublicSettingsInjectionPayload struct {
 	OIDCOAuthProviderName            string                   `json:"oidc_oauth_provider_name"`
 	GitHubOAuthEnabled               bool                     `json:"github_oauth_enabled"`
 	GoogleOAuthEnabled               bool                     `json:"google_oauth_enabled"`
+	UniFedOAuthEnabled               bool                     `json:"unifed_oauth_enabled"`
 	BackendModeEnabled               bool                     `json:"backend_mode_enabled"`
-	PaymentEnabled                   bool                     `json:"payment_enabled"`
-	Version                          string                   `json:"version"`
-	BalanceLowNotifyEnabled          bool                     `json:"balance_low_notify_enabled"`
-	AccountQuotaNotifyEnabled        bool                     `json:"account_quota_notify_enabled"`
-	BalanceLowNotifyThreshold        float64                  `json:"balance_low_notify_threshold"`
-	BalanceLowNotifyRechargeURL      string                   `json:"balance_low_notify_recharge_url"`
+
+	PaymentEnabled              bool    `json:"payment_enabled"`
+	Version                     string  `json:"version"`
+	BalanceLowNotifyEnabled     bool    `json:"balance_low_notify_enabled"`
+	AccountQuotaNotifyEnabled   bool    `json:"account_quota_notify_enabled"`
+	BalanceLowNotifyThreshold   float64 `json:"balance_low_notify_threshold"`
+	BalanceLowNotifyRechargeURL string  `json:"balance_low_notify_recharge_url"`
 
 	// Feature flags — MUST match the opt-in/opt-out registry in
 	// frontend/src/utils/featureFlags.ts. Missing a field here is the bug
@@ -1313,6 +1334,7 @@ func (s *SettingService) GetPublicSettingsForInjection(ctx context.Context) (any
 		OIDCOAuthProviderName:            settings.OIDCOAuthProviderName,
 		GitHubOAuthEnabled:               settings.GitHubOAuthEnabled,
 		GoogleOAuthEnabled:               settings.GoogleOAuthEnabled,
+		UniFedOAuthEnabled:               settings.UniFedOAuthEnabled,
 		BackendModeEnabled:               settings.BackendModeEnabled,
 		PaymentEnabled:                   settings.PaymentEnabled,
 		Version:                          s.version,
@@ -1813,6 +1835,11 @@ func (s *SettingService) buildSystemSettingsUpdates(ctx context.Context, setting
 	updates[SettingKeyDingTalkConnectSyncDisplayNameAttrName] = settings.DingTalkConnectSyncDisplayNameAttrName
 	updates[SettingKeyDingTalkConnectSyncDeptAttrName] = settings.DingTalkConnectSyncDeptAttrName
 
+	// Universe Federation (Sharkey MiAuth) OAuth 登录
+	updates[SettingKeyUniFedConnectEnabled] = strconv.FormatBool(settings.UniFedConnectEnabled)
+	updates[SettingKeyUniFedConnectInstanceURL] = settings.UniFedConnectInstanceURL
+	updates[SettingKeyUniFedConnectRedirectURL] = settings.UniFedConnectRedirectURL
+
 	// Generic OIDC OAuth 登录
 	updates[SettingKeyOIDCConnectEnabled] = strconv.FormatBool(settings.OIDCConnectEnabled)
 	updates[SettingKeyOIDCConnectProviderName] = settings.OIDCConnectProviderName
@@ -2064,6 +2091,7 @@ func (s *SettingService) buildAuthSourceDefaultUpdates(ctx context.Context, sett
 		settings.GitHub.Subscriptions,
 		settings.Google.Subscriptions,
 		settings.DingTalk.Subscriptions,
+		settings.UniFed.Subscriptions,
 	} {
 		if err := s.validateDefaultSubscriptionGroups(ctx, subscriptions); err != nil {
 			return nil, err
@@ -2082,6 +2110,7 @@ func (s *SettingService) buildAuthSourceDefaultUpdates(ctx context.Context, sett
 		{"github", settings.GitHub.PlatformQuotas},
 		{"google", settings.Google.PlatformQuotas},
 		{"dingtalk", settings.DingTalk.PlatformQuotas},
+		{"unifed", settings.UniFed.PlatformQuotas},
 	} {
 		if pgs.pq != nil {
 			if err := validateDefaultPlatformQuotaMap(pgs.pq); err != nil {
@@ -2098,6 +2127,7 @@ func (s *SettingService) buildAuthSourceDefaultUpdates(ctx context.Context, sett
 	writeProviderDefaultGrantUpdates(updates, gitHubAuthSourceDefaultKeys, settings.GitHub)
 	writeProviderDefaultGrantUpdates(updates, googleAuthSourceDefaultKeys, settings.Google)
 	writeProviderDefaultGrantUpdates(updates, dingTalkAuthSourceDefaultKeys, settings.DingTalk)
+	writeProviderDefaultGrantUpdates(updates, uniFedAuthSourceDefaultKeys, settings.UniFed)
 	updates[SettingKeyForceEmailOnThirdPartySignup] = strconv.FormatBool(settings.ForceEmailOnThirdPartySignup)
 	return updates, nil
 }
@@ -2700,6 +2730,11 @@ func (s *SettingService) GetAuthSourceDefaultSettings(ctx context.Context) (*Aut
 		SettingKeyAuthSourceDefaultDingTalkSubscriptions,
 		SettingKeyAuthSourceDefaultDingTalkGrantOnSignup,
 		SettingKeyAuthSourceDefaultDingTalkGrantOnFirstBind,
+		SettingKeyAuthSourceDefaultUniFedBalance,
+		SettingKeyAuthSourceDefaultUniFedConcurrency,
+		SettingKeyAuthSourceDefaultUniFedSubscriptions,
+		SettingKeyAuthSourceDefaultUniFedGrantOnSignup,
+		SettingKeyAuthSourceDefaultUniFedGrantOnFirstBind,
 		SettingKeyAuthSourcePlatformQuotas("email"),
 		SettingKeyAuthSourcePlatformQuotas("linuxdo"),
 		SettingKeyAuthSourcePlatformQuotas("oidc"),
@@ -2707,6 +2742,7 @@ func (s *SettingService) GetAuthSourceDefaultSettings(ctx context.Context) (*Aut
 		SettingKeyAuthSourcePlatformQuotas("github"),
 		SettingKeyAuthSourcePlatformQuotas("google"),
 		SettingKeyAuthSourcePlatformQuotas("dingtalk"),
+		SettingKeyAuthSourcePlatformQuotas("unifed"),
 		SettingKeyForceEmailOnThirdPartySignup,
 	}
 
@@ -2723,6 +2759,7 @@ func (s *SettingService) GetAuthSourceDefaultSettings(ctx context.Context) (*Aut
 		GitHub:                       parseProviderDefaultGrantSettings(settings, gitHubAuthSourceDefaultKeys),
 		Google:                       parseProviderDefaultGrantSettings(settings, googleAuthSourceDefaultKeys),
 		DingTalk:                     parseProviderDefaultGrantSettings(settings, dingTalkAuthSourceDefaultKeys),
+		UniFed:                       parseProviderDefaultGrantSettings(settings, uniFedAuthSourceDefaultKeys),
 		ForceEmailOnThirdPartySignup: settings[SettingKeyForceEmailOnThirdPartySignup] == "true",
 	}, nil
 }
@@ -2864,6 +2901,9 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyOIDCConnectUserInfoEmailPath:              "",
 		SettingKeyOIDCConnectUserInfoIDPath:                 "",
 		SettingKeyOIDCConnectUserInfoUsernamePath:           "",
+		SettingKeyUniFedConnectEnabled:                      strconv.FormatBool(s.cfg.UniFed.Enabled),
+		SettingKeyUniFedConnectInstanceURL:                  firstNonEmpty(s.cfg.UniFed.InstanceURL, defaultUniFedConnectInstance),
+		SettingKeyUniFedConnectRedirectURL:                  s.cfg.UniFed.RedirectURL,
 		SettingKeyDefaultConcurrency:                        strconv.Itoa(s.cfg.Default.UserConcurrency),
 		SettingKeyDefaultBalance:                            strconv.FormatFloat(s.cfg.Default.UserBalance, 'f', 8, 64),
 		SettingKeyAffiliateRebateRate:                       strconv.FormatFloat(AffiliateRebateRateDefault, 'f', 8, 64),
@@ -2907,6 +2947,11 @@ func (s *SettingService) InitializeDefaultSettings(ctx context.Context) error {
 		SettingKeyAuthSourceDefaultDingTalkSubscriptions:    "[]",
 		SettingKeyAuthSourceDefaultDingTalkGrantOnSignup:    "false",
 		SettingKeyAuthSourceDefaultDingTalkGrantOnFirstBind: "false",
+		SettingKeyAuthSourceDefaultUniFedBalance:            "0",
+		SettingKeyAuthSourceDefaultUniFedConcurrency:        "5",
+		SettingKeyAuthSourceDefaultUniFedSubscriptions:      "[]",
+		SettingKeyAuthSourceDefaultUniFedGrantOnSignup:      "false",
+		SettingKeyAuthSourceDefaultUniFedGrantOnFirstBind:   "false",
 		SettingKeyForceEmailOnThirdPartySignup:              "false",
 		SettingKeySMTPPort:                                  "587",
 		SettingKeySMTPUseTLS:                                "false",
@@ -3230,6 +3275,30 @@ func (s *SettingService) parseSettings(settings map[string]string) *SystemSettin
 		} else {
 			result.DingTalkConnectSyncDeptAttrName = "钉钉部门"
 		}
+	}
+
+	// Universe Federation (Sharkey MiAuth) 设置
+	unifedBase := config.UniFedConnectConfig{}
+	if s.cfg != nil {
+		unifedBase = s.cfg.UniFed
+	}
+
+	if raw, ok := settings[SettingKeyUniFedConnectEnabled]; ok {
+		result.UniFedConnectEnabled = raw == "true"
+	} else {
+		result.UniFedConnectEnabled = unifedBase.Enabled
+	}
+
+	if v, ok := settings[SettingKeyUniFedConnectInstanceURL]; ok && strings.TrimSpace(v) != "" {
+		result.UniFedConnectInstanceURL = strings.TrimSpace(v)
+	} else {
+		result.UniFedConnectInstanceURL = firstNonEmpty(unifedBase.InstanceURL, defaultUniFedConnectInstance)
+	}
+
+	if v, ok := settings[SettingKeyUniFedConnectRedirectURL]; ok && strings.TrimSpace(v) != "" {
+		result.UniFedConnectRedirectURL = strings.TrimSpace(v)
+	} else {
+		result.UniFedConnectRedirectURL = unifedBase.RedirectURL
 	}
 
 	// Generic OIDC 设置：
@@ -4249,7 +4318,57 @@ func (s *SettingService) SetRateLimit429CooldownSettings(ctx context.Context, se
 	return s.settingRepo.Set(ctx, SettingKeyRateLimit429CooldownSettings, string(data))
 }
 
-// GetOIDCConnectOAuthConfig 返回用于登录的“最终生效” OIDC 配置。
+// GetUniFedConnectOAuthConfig 返回用于登录的”最终生效” Universe Federation 配置。
+//
+// 优先级：
+// - 若对应系统设置键存在，则覆盖 config.yaml/env 的值
+// - 否则回退到 config.yaml/env 的值
+func (s *SettingService) GetUniFedConnectOAuthConfig(ctx context.Context) (config.UniFedConnectConfig, error) {
+	if s == nil || s.cfg == nil {
+		return config.UniFedConnectConfig{}, infraerrors.ServiceUnavailable("CONFIG_NOT_READY", "config not loaded")
+	}
+
+	effective := s.cfg.UniFed
+	effective.InstanceURL = firstNonEmpty(effective.InstanceURL, defaultUniFedConnectInstance)
+
+	keys := []string{
+		SettingKeyUniFedConnectEnabled,
+		SettingKeyUniFedConnectInstanceURL,
+		SettingKeyUniFedConnectRedirectURL,
+	}
+	settings, err := s.settingRepo.GetMultiple(ctx, keys)
+	if err != nil {
+		return config.UniFedConnectConfig{}, fmt.Errorf("get unifed connect settings: %w", err)
+	}
+
+	if raw, ok := settings[SettingKeyUniFedConnectEnabled]; ok {
+		effective.Enabled = raw == "true"
+	}
+	if v, ok := settings[SettingKeyUniFedConnectInstanceURL]; ok && strings.TrimSpace(v) != "" {
+		effective.InstanceURL = strings.TrimSpace(v)
+	}
+	if v, ok := settings[SettingKeyUniFedConnectRedirectURL]; ok && strings.TrimSpace(v) != "" {
+		effective.RedirectURL = strings.TrimSpace(v)
+	}
+	if !effective.Enabled {
+		return config.UniFedConnectConfig{}, infraerrors.NotFound("OAUTH_DISABLED", "oauth login is disabled")
+	}
+
+	instanceURL := strings.TrimRight(effective.InstanceURL, "/")
+	if instanceURL == "" {
+		return config.UniFedConnectConfig{}, infraerrors.InternalServer("OAUTH_CONFIG_INVALID", "unifed instance url not configured")
+	}
+	if !strings.HasPrefix(instanceURL, "http://") && !strings.HasPrefix(instanceURL, "https://") {
+		return config.UniFedConnectConfig{}, infraerrors.InternalServer("OAUTH_CONFIG_INVALID", "unifed instance url must start with http:// or https://")
+	}
+	if strings.TrimSpace(effective.RedirectURL) == "" {
+		return config.UniFedConnectConfig{}, infraerrors.InternalServer("OAUTH_CONFIG_INVALID", "unifed redirect url not configured")
+	}
+
+	return effective, nil
+}
+
+// GetOIDCConnectOAuthConfig 返回用于登录的”最终生效” OIDC 配置。
 //
 // 优先级：
 // - 若对应系统设置键存在，则覆盖 config.yaml/env 的值

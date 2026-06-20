@@ -66,6 +66,11 @@ type SystemSettings struct {
 	DingTalkConnectSyncDisplayNameAttrName string
 	DingTalkConnectSyncDeptAttrName        string
 
+	// Universe Federation (Sharkey MiAuth) 登录
+	UniFedConnectEnabled     bool
+	UniFedConnectInstanceURL string
+	UniFedConnectRedirectURL string
+
 	// WeChat Connect OAuth 登录
 	WeChatConnectEnabled                   bool
 	WeChatConnectAppID                     string
@@ -282,6 +287,7 @@ type PublicSettings struct {
 	OIDCOAuthProviderName    string
 	GitHubOAuthEnabled       bool
 	GoogleOAuthEnabled       bool
+	UniFedOAuthEnabled       bool
 	Version                  string
 
 	BalanceLowNotifyEnabled     bool

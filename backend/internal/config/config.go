@@ -74,6 +74,7 @@ type Config struct {
 	WeChat                  WeChatConnectConfig           `mapstructure:"wechat_connect"`
 	OIDC                    OIDCConnectConfig             `mapstructure:"oidc_connect"`
 	DingTalk                DingTalkConnectConfig         `mapstructure:"dingtalk_connect"`
+	UniFed                  UniFedConnectConfig           `mapstructure:"unifed_connect"`
 	GitHubOAuth             EmailOAuthProviderConfig      `mapstructure:"github_oauth"`
 	GoogleOAuth             EmailOAuthProviderConfig      `mapstructure:"google_oauth"`
 	Default                 DefaultConfig                 `mapstructure:"default"`
@@ -283,6 +284,20 @@ type DingTalkConnectConfig struct {
 	EnableAttributeSync          bool     `mapstructure:"enable_attribute_sync"`
 	AttributeSyncFields          []string `mapstructure:"attribute_sync_fields"`
 	AttributeSyncOverwritePolicy string   `mapstructure:"attribute_sync_overwrite_policy"`
+}
+
+// UniFedConnectConfig 是 Universe Federation (Sharkey/Misskey MiAuth) 登录配置。
+// 注意 MiAuth 不是标准 OAuth2，而是 Misskey 生态的专有协议。
+type UniFedConnectConfig struct {
+	Enabled     bool   `mapstructure:"enabled"`
+	InstanceURL string `mapstructure:"instance_url"` // Sharkey 实例地址，如 https://dc.hhhl.cc
+	RedirectURL string `mapstructure:"redirect_url"` // 后端回调地址，如 https://example.com/api/v1/auth/oauth/unifed/callback
+
+	// 可选覆盖：默认使用 MiAuth 流程构建的 authorize/token/userinfo URL
+	// 一般无需设置，框架会自动组装：
+	//   AuthorizeURL = InstanceURL + /miauth/{session}
+	//   TokenURL     = InstanceURL + /api/miauth/{session}/check
+	//   UserInfoURL  = InstanceURL + /api/i
 }
 
 type EmailOAuthProviderConfig struct {
