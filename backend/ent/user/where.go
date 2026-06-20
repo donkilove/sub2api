@@ -170,6 +170,16 @@ func RpmLimit(v int) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldRpmLimit, v))
 }
 
+// UserConcurrencyOverride applies equality check predicate on the "user_concurrency_override" field. It's identical to UserConcurrencyOverrideEQ.
+func UserConcurrencyOverride(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUserConcurrencyOverride, v))
+}
+
+// UserRpmLimitOverride applies equality check predicate on the "user_rpm_limit_override" field. It's identical to UserRpmLimitOverrideEQ.
+func UserRpmLimitOverride(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUserRpmLimitOverride, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -1338,6 +1348,106 @@ func RpmLimitLT(v int) predicate.User {
 // RpmLimitLTE applies the LTE predicate on the "rpm_limit" field.
 func RpmLimitLTE(v int) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldRpmLimit, v))
+}
+
+// UserConcurrencyOverrideEQ applies the EQ predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUserConcurrencyOverride, v))
+}
+
+// UserConcurrencyOverrideNEQ applies the NEQ predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldUserConcurrencyOverride, v))
+}
+
+// UserConcurrencyOverrideIn applies the In predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldUserConcurrencyOverride, vs...))
+}
+
+// UserConcurrencyOverrideNotIn applies the NotIn predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldUserConcurrencyOverride, vs...))
+}
+
+// UserConcurrencyOverrideGT applies the GT predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldUserConcurrencyOverride, v))
+}
+
+// UserConcurrencyOverrideGTE applies the GTE predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldUserConcurrencyOverride, v))
+}
+
+// UserConcurrencyOverrideLT applies the LT predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldUserConcurrencyOverride, v))
+}
+
+// UserConcurrencyOverrideLTE applies the LTE predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldUserConcurrencyOverride, v))
+}
+
+// UserConcurrencyOverrideIsNil applies the IsNil predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUserConcurrencyOverride))
+}
+
+// UserConcurrencyOverrideNotNil applies the NotNil predicate on the "user_concurrency_override" field.
+func UserConcurrencyOverrideNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUserConcurrencyOverride))
+}
+
+// UserRpmLimitOverrideEQ applies the EQ predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUserRpmLimitOverride, v))
+}
+
+// UserRpmLimitOverrideNEQ applies the NEQ predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldUserRpmLimitOverride, v))
+}
+
+// UserRpmLimitOverrideIn applies the In predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldUserRpmLimitOverride, vs...))
+}
+
+// UserRpmLimitOverrideNotIn applies the NotIn predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldUserRpmLimitOverride, vs...))
+}
+
+// UserRpmLimitOverrideGT applies the GT predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldUserRpmLimitOverride, v))
+}
+
+// UserRpmLimitOverrideGTE applies the GTE predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldUserRpmLimitOverride, v))
+}
+
+// UserRpmLimitOverrideLT applies the LT predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldUserRpmLimitOverride, v))
+}
+
+// UserRpmLimitOverrideLTE applies the LTE predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldUserRpmLimitOverride, v))
+}
+
+// UserRpmLimitOverrideIsNil applies the IsNil predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUserRpmLimitOverride))
+}
+
+// UserRpmLimitOverrideNotNil applies the NotNil predicate on the "user_rpm_limit_override" field.
+func UserRpmLimitOverrideNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUserRpmLimitOverride))
 }
 
 // HasAPIKeys applies the HasEdge predicate on the "api_keys" edge.

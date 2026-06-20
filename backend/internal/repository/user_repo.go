@@ -94,6 +94,8 @@ func (r *userRepository) Create(ctx context.Context, userIn *service.User) error
 		SetSignupSource(userSignupSourceOrDefault(userIn.SignupSource)).
 		SetNillableLastLoginAt(userIn.LastLoginAt).
 		SetNillableLastActiveAt(userIn.LastActiveAt).
+		SetNillableUserConcurrencyOverride(userIn.UserConcurrencyOverride).
+		SetNillableUserRpmLimitOverride(userIn.UserRPMLimitOverride).
 		SetRpmLimit(userIn.RPMLimit).
 		Save(txCtx)
 	if err != nil {
@@ -240,6 +242,16 @@ func (r *userRepository) Update(ctx context.Context, userIn *service.User) error
 		SetBalanceNotifyExtraEmails(marshalExtraEmails(userIn.BalanceNotifyExtraEmails)).
 		SetTotalRecharged(userIn.TotalRecharged).
 		SetRpmLimit(userIn.RPMLimit)
+	if userIn.UserConcurrencyOverride != nil {
+		updateOp = updateOp.SetUserConcurrencyOverride(*userIn.UserConcurrencyOverride)
+	} else {
+		updateOp = updateOp.ClearUserConcurrencyOverride()
+	}
+	if userIn.UserRPMLimitOverride != nil {
+		updateOp = updateOp.SetUserRpmLimitOverride(*userIn.UserRPMLimitOverride)
+	} else {
+		updateOp = updateOp.ClearUserRpmLimitOverride()
+	}
 	if userIn.SignupSource != "" {
 		updateOp = updateOp.SetSignupSource(userIn.SignupSource)
 	}
@@ -1020,6 +1032,8 @@ func applyUserEntityToService(dst *service.User, src *dbent.User) {
 	dst.SignupSource = src.SignupSource
 	dst.LastLoginAt = src.LastLoginAt
 	dst.LastActiveAt = src.LastActiveAt
+	dst.UserConcurrencyOverride = src.UserConcurrencyOverride
+	dst.UserRPMLimitOverride = src.UserRpmLimitOverride
 	dst.CreatedAt = src.CreatedAt
 	dst.UpdatedAt = src.UpdatedAt
 }

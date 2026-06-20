@@ -30,6 +30,8 @@ func UserFromServiceShallow(u *service.User) *User {
 		BalanceNotifyExtraEmails:   NotifyEmailEntriesFromService(u.BalanceNotifyExtraEmails),
 		TotalRecharged:             u.TotalRecharged,
 		RPMLimit:                   u.RPMLimit,
+		UserConcurrencyOverride:    u.UserConcurrencyOverride,
+		UserRPMLimitOverride:       u.UserRPMLimitOverride,
 		DeletedAt:                  u.DeletedAt,
 	}
 }
@@ -191,6 +193,7 @@ func groupFromServiceBase(g *service.Group) Group {
 		RequireOAuthOnly:                g.RequireOAuthOnly,
 		RequirePrivacySet:               g.RequirePrivacySet,
 		RPMLimit:                        g.RPMLimit,
+		UserConcurrencyLimit:            g.UserConcurrencyLimit,
 		CreatedAt:                       g.CreatedAt,
 		UpdatedAt:                       g.UpdatedAt,
 	}

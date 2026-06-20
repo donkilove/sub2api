@@ -411,6 +411,60 @@ func (_u *UserUpdate) AddRpmLimit(v int) *UserUpdate {
 	return _u
 }
 
+// SetUserConcurrencyOverride sets the "user_concurrency_override" field.
+func (_u *UserUpdate) SetUserConcurrencyOverride(v int) *UserUpdate {
+	_u.mutation.ResetUserConcurrencyOverride()
+	_u.mutation.SetUserConcurrencyOverride(v)
+	return _u
+}
+
+// SetNillableUserConcurrencyOverride sets the "user_concurrency_override" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableUserConcurrencyOverride(v *int) *UserUpdate {
+	if v != nil {
+		_u.SetUserConcurrencyOverride(*v)
+	}
+	return _u
+}
+
+// AddUserConcurrencyOverride adds value to the "user_concurrency_override" field.
+func (_u *UserUpdate) AddUserConcurrencyOverride(v int) *UserUpdate {
+	_u.mutation.AddUserConcurrencyOverride(v)
+	return _u
+}
+
+// ClearUserConcurrencyOverride clears the value of the "user_concurrency_override" field.
+func (_u *UserUpdate) ClearUserConcurrencyOverride() *UserUpdate {
+	_u.mutation.ClearUserConcurrencyOverride()
+	return _u
+}
+
+// SetUserRpmLimitOverride sets the "user_rpm_limit_override" field.
+func (_u *UserUpdate) SetUserRpmLimitOverride(v int) *UserUpdate {
+	_u.mutation.ResetUserRpmLimitOverride()
+	_u.mutation.SetUserRpmLimitOverride(v)
+	return _u
+}
+
+// SetNillableUserRpmLimitOverride sets the "user_rpm_limit_override" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableUserRpmLimitOverride(v *int) *UserUpdate {
+	if v != nil {
+		_u.SetUserRpmLimitOverride(*v)
+	}
+	return _u
+}
+
+// AddUserRpmLimitOverride adds value to the "user_rpm_limit_override" field.
+func (_u *UserUpdate) AddUserRpmLimitOverride(v int) *UserUpdate {
+	_u.mutation.AddUserRpmLimitOverride(v)
+	return _u
+}
+
+// ClearUserRpmLimitOverride clears the value of the "user_rpm_limit_override" field.
+func (_u *UserUpdate) ClearUserRpmLimitOverride() *UserUpdate {
+	_u.mutation.ClearUserRpmLimitOverride()
+	return _u
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_u *UserUpdate) AddAPIKeyIDs(ids ...int64) *UserUpdate {
 	_u.mutation.AddAPIKeyIDs(ids...)
@@ -1071,6 +1125,24 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedRpmLimit(); ok {
 		_spec.AddField(user.FieldRpmLimit, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.UserConcurrencyOverride(); ok {
+		_spec.SetField(user.FieldUserConcurrencyOverride, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserConcurrencyOverride(); ok {
+		_spec.AddField(user.FieldUserConcurrencyOverride, field.TypeInt, value)
+	}
+	if _u.mutation.UserConcurrencyOverrideCleared() {
+		_spec.ClearField(user.FieldUserConcurrencyOverride, field.TypeInt)
+	}
+	if value, ok := _u.mutation.UserRpmLimitOverride(); ok {
+		_spec.SetField(user.FieldUserRpmLimitOverride, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserRpmLimitOverride(); ok {
+		_spec.AddField(user.FieldUserRpmLimitOverride, field.TypeInt, value)
+	}
+	if _u.mutation.UserRpmLimitOverrideCleared() {
+		_spec.ClearField(user.FieldUserRpmLimitOverride, field.TypeInt)
 	}
 	if _u.mutation.APIKeysCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2060,6 +2132,60 @@ func (_u *UserUpdateOne) AddRpmLimit(v int) *UserUpdateOne {
 	return _u
 }
 
+// SetUserConcurrencyOverride sets the "user_concurrency_override" field.
+func (_u *UserUpdateOne) SetUserConcurrencyOverride(v int) *UserUpdateOne {
+	_u.mutation.ResetUserConcurrencyOverride()
+	_u.mutation.SetUserConcurrencyOverride(v)
+	return _u
+}
+
+// SetNillableUserConcurrencyOverride sets the "user_concurrency_override" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableUserConcurrencyOverride(v *int) *UserUpdateOne {
+	if v != nil {
+		_u.SetUserConcurrencyOverride(*v)
+	}
+	return _u
+}
+
+// AddUserConcurrencyOverride adds value to the "user_concurrency_override" field.
+func (_u *UserUpdateOne) AddUserConcurrencyOverride(v int) *UserUpdateOne {
+	_u.mutation.AddUserConcurrencyOverride(v)
+	return _u
+}
+
+// ClearUserConcurrencyOverride clears the value of the "user_concurrency_override" field.
+func (_u *UserUpdateOne) ClearUserConcurrencyOverride() *UserUpdateOne {
+	_u.mutation.ClearUserConcurrencyOverride()
+	return _u
+}
+
+// SetUserRpmLimitOverride sets the "user_rpm_limit_override" field.
+func (_u *UserUpdateOne) SetUserRpmLimitOverride(v int) *UserUpdateOne {
+	_u.mutation.ResetUserRpmLimitOverride()
+	_u.mutation.SetUserRpmLimitOverride(v)
+	return _u
+}
+
+// SetNillableUserRpmLimitOverride sets the "user_rpm_limit_override" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableUserRpmLimitOverride(v *int) *UserUpdateOne {
+	if v != nil {
+		_u.SetUserRpmLimitOverride(*v)
+	}
+	return _u
+}
+
+// AddUserRpmLimitOverride adds value to the "user_rpm_limit_override" field.
+func (_u *UserUpdateOne) AddUserRpmLimitOverride(v int) *UserUpdateOne {
+	_u.mutation.AddUserRpmLimitOverride(v)
+	return _u
+}
+
+// ClearUserRpmLimitOverride clears the value of the "user_rpm_limit_override" field.
+func (_u *UserUpdateOne) ClearUserRpmLimitOverride() *UserUpdateOne {
+	_u.mutation.ClearUserRpmLimitOverride()
+	return _u
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_u *UserUpdateOne) AddAPIKeyIDs(ids ...int64) *UserUpdateOne {
 	_u.mutation.AddAPIKeyIDs(ids...)
@@ -2750,6 +2876,24 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.AddedRpmLimit(); ok {
 		_spec.AddField(user.FieldRpmLimit, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.UserConcurrencyOverride(); ok {
+		_spec.SetField(user.FieldUserConcurrencyOverride, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserConcurrencyOverride(); ok {
+		_spec.AddField(user.FieldUserConcurrencyOverride, field.TypeInt, value)
+	}
+	if _u.mutation.UserConcurrencyOverrideCleared() {
+		_spec.ClearField(user.FieldUserConcurrencyOverride, field.TypeInt)
+	}
+	if value, ok := _u.mutation.UserRpmLimitOverride(); ok {
+		_spec.SetField(user.FieldUserRpmLimitOverride, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserRpmLimitOverride(); ok {
+		_spec.AddField(user.FieldUserRpmLimitOverride, field.TypeInt, value)
+	}
+	if _u.mutation.UserRpmLimitOverrideCleared() {
+		_spec.ClearField(user.FieldUserRpmLimitOverride, field.TypeInt)
 	}
 	if _u.mutation.APIKeysCleared() {
 		edge := &sqlgraph.EdgeSpec{

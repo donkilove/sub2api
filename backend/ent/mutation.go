@@ -15152,6 +15152,8 @@ type GroupMutation struct {
 	models_list_config                      *domain.GroupModelsListConfig
 	rpm_limit                               *int
 	addrpm_limit                            *int
+	user_concurrency_limit                  *int
+	adduser_concurrency_limit               *int
 	clearedFields                           map[string]struct{}
 	api_keys                                map[int64]struct{}
 	removedapi_keys                         map[int64]struct{}
@@ -16960,6 +16962,62 @@ func (m *GroupMutation) ResetRpmLimit() {
 	m.addrpm_limit = nil
 }
 
+// SetUserConcurrencyLimit sets the "user_concurrency_limit" field.
+func (m *GroupMutation) SetUserConcurrencyLimit(i int) {
+	m.user_concurrency_limit = &i
+	m.adduser_concurrency_limit = nil
+}
+
+// UserConcurrencyLimit returns the value of the "user_concurrency_limit" field in the mutation.
+func (m *GroupMutation) UserConcurrencyLimit() (r int, exists bool) {
+	v := m.user_concurrency_limit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserConcurrencyLimit returns the old "user_concurrency_limit" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldUserConcurrencyLimit(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserConcurrencyLimit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserConcurrencyLimit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserConcurrencyLimit: %w", err)
+	}
+	return oldValue.UserConcurrencyLimit, nil
+}
+
+// AddUserConcurrencyLimit adds i to the "user_concurrency_limit" field.
+func (m *GroupMutation) AddUserConcurrencyLimit(i int) {
+	if m.adduser_concurrency_limit != nil {
+		*m.adduser_concurrency_limit += i
+	} else {
+		m.adduser_concurrency_limit = &i
+	}
+}
+
+// AddedUserConcurrencyLimit returns the value that was added to the "user_concurrency_limit" field in this mutation.
+func (m *GroupMutation) AddedUserConcurrencyLimit() (r int, exists bool) {
+	v := m.adduser_concurrency_limit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserConcurrencyLimit resets all changes to the "user_concurrency_limit" field.
+func (m *GroupMutation) ResetUserConcurrencyLimit() {
+	m.user_concurrency_limit = nil
+	m.adduser_concurrency_limit = nil
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by ids.
 func (m *GroupMutation) AddAPIKeyIDs(ids ...int64) {
 	if m.api_keys == nil {
@@ -17318,7 +17376,7 @@ func (m *GroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMutation) Fields() []string {
-	fields := make([]string, 0, 35)
+	fields := make([]string, 0, 36)
 	if m.created_at != nil {
 		fields = append(fields, group.FieldCreatedAt)
 	}
@@ -17424,6 +17482,9 @@ func (m *GroupMutation) Fields() []string {
 	if m.rpm_limit != nil {
 		fields = append(fields, group.FieldRpmLimit)
 	}
+	if m.user_concurrency_limit != nil {
+		fields = append(fields, group.FieldUserConcurrencyLimit)
+	}
 	return fields
 }
 
@@ -17502,6 +17563,8 @@ func (m *GroupMutation) Field(name string) (ent.Value, bool) {
 		return m.ModelsListConfig()
 	case group.FieldRpmLimit:
 		return m.RpmLimit()
+	case group.FieldUserConcurrencyLimit:
+		return m.UserConcurrencyLimit()
 	}
 	return nil, false
 }
@@ -17581,6 +17644,8 @@ func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldModelsListConfig(ctx)
 	case group.FieldRpmLimit:
 		return m.OldRpmLimit(ctx)
+	case group.FieldUserConcurrencyLimit:
+		return m.OldUserConcurrencyLimit(ctx)
 	}
 	return nil, fmt.Errorf("unknown Group field %s", name)
 }
@@ -17835,6 +17900,13 @@ func (m *GroupMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRpmLimit(v)
 		return nil
+	case group.FieldUserConcurrencyLimit:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserConcurrencyLimit(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Group field %s", name)
 }
@@ -17882,6 +17954,9 @@ func (m *GroupMutation) AddedFields() []string {
 	if m.addrpm_limit != nil {
 		fields = append(fields, group.FieldRpmLimit)
 	}
+	if m.adduser_concurrency_limit != nil {
+		fields = append(fields, group.FieldUserConcurrencyLimit)
+	}
 	return fields
 }
 
@@ -17916,6 +17991,8 @@ func (m *GroupMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedSortOrder()
 	case group.FieldRpmLimit:
 		return m.AddedRpmLimit()
+	case group.FieldUserConcurrencyLimit:
+		return m.AddedUserConcurrencyLimit()
 	}
 	return nil, false
 }
@@ -18015,6 +18092,13 @@ func (m *GroupMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRpmLimit(v)
+		return nil
+	case group.FieldUserConcurrencyLimit:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserConcurrencyLimit(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Group numeric field %s", name)
@@ -18216,6 +18300,9 @@ func (m *GroupMutation) ResetField(name string) error {
 		return nil
 	case group.FieldRpmLimit:
 		m.ResetRpmLimit()
+		return nil
+	case group.FieldUserConcurrencyLimit:
+		m.ResetUserConcurrencyLimit()
 		return nil
 	}
 	return fmt.Errorf("unknown Group field %s", name)
@@ -38760,6 +38847,10 @@ type UserMutation struct {
 	addtotal_recharged            *float64
 	rpm_limit                     *int
 	addrpm_limit                  *int
+	user_concurrency_override     *int
+	adduser_concurrency_override  *int
+	user_rpm_limit_override       *int
+	adduser_rpm_limit_override    *int
 	clearedFields                 map[string]struct{}
 	api_keys                      map[int64]struct{}
 	removedapi_keys               map[int64]struct{}
@@ -39910,6 +40001,146 @@ func (m *UserMutation) ResetRpmLimit() {
 	m.addrpm_limit = nil
 }
 
+// SetUserConcurrencyOverride sets the "user_concurrency_override" field.
+func (m *UserMutation) SetUserConcurrencyOverride(i int) {
+	m.user_concurrency_override = &i
+	m.adduser_concurrency_override = nil
+}
+
+// UserConcurrencyOverride returns the value of the "user_concurrency_override" field in the mutation.
+func (m *UserMutation) UserConcurrencyOverride() (r int, exists bool) {
+	v := m.user_concurrency_override
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserConcurrencyOverride returns the old "user_concurrency_override" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUserConcurrencyOverride(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserConcurrencyOverride is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserConcurrencyOverride requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserConcurrencyOverride: %w", err)
+	}
+	return oldValue.UserConcurrencyOverride, nil
+}
+
+// AddUserConcurrencyOverride adds i to the "user_concurrency_override" field.
+func (m *UserMutation) AddUserConcurrencyOverride(i int) {
+	if m.adduser_concurrency_override != nil {
+		*m.adduser_concurrency_override += i
+	} else {
+		m.adduser_concurrency_override = &i
+	}
+}
+
+// AddedUserConcurrencyOverride returns the value that was added to the "user_concurrency_override" field in this mutation.
+func (m *UserMutation) AddedUserConcurrencyOverride() (r int, exists bool) {
+	v := m.adduser_concurrency_override
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearUserConcurrencyOverride clears the value of the "user_concurrency_override" field.
+func (m *UserMutation) ClearUserConcurrencyOverride() {
+	m.user_concurrency_override = nil
+	m.adduser_concurrency_override = nil
+	m.clearedFields[user.FieldUserConcurrencyOverride] = struct{}{}
+}
+
+// UserConcurrencyOverrideCleared returns if the "user_concurrency_override" field was cleared in this mutation.
+func (m *UserMutation) UserConcurrencyOverrideCleared() bool {
+	_, ok := m.clearedFields[user.FieldUserConcurrencyOverride]
+	return ok
+}
+
+// ResetUserConcurrencyOverride resets all changes to the "user_concurrency_override" field.
+func (m *UserMutation) ResetUserConcurrencyOverride() {
+	m.user_concurrency_override = nil
+	m.adduser_concurrency_override = nil
+	delete(m.clearedFields, user.FieldUserConcurrencyOverride)
+}
+
+// SetUserRpmLimitOverride sets the "user_rpm_limit_override" field.
+func (m *UserMutation) SetUserRpmLimitOverride(i int) {
+	m.user_rpm_limit_override = &i
+	m.adduser_rpm_limit_override = nil
+}
+
+// UserRpmLimitOverride returns the value of the "user_rpm_limit_override" field in the mutation.
+func (m *UserMutation) UserRpmLimitOverride() (r int, exists bool) {
+	v := m.user_rpm_limit_override
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserRpmLimitOverride returns the old "user_rpm_limit_override" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldUserRpmLimitOverride(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserRpmLimitOverride is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserRpmLimitOverride requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserRpmLimitOverride: %w", err)
+	}
+	return oldValue.UserRpmLimitOverride, nil
+}
+
+// AddUserRpmLimitOverride adds i to the "user_rpm_limit_override" field.
+func (m *UserMutation) AddUserRpmLimitOverride(i int) {
+	if m.adduser_rpm_limit_override != nil {
+		*m.adduser_rpm_limit_override += i
+	} else {
+		m.adduser_rpm_limit_override = &i
+	}
+}
+
+// AddedUserRpmLimitOverride returns the value that was added to the "user_rpm_limit_override" field in this mutation.
+func (m *UserMutation) AddedUserRpmLimitOverride() (r int, exists bool) {
+	v := m.adduser_rpm_limit_override
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearUserRpmLimitOverride clears the value of the "user_rpm_limit_override" field.
+func (m *UserMutation) ClearUserRpmLimitOverride() {
+	m.user_rpm_limit_override = nil
+	m.adduser_rpm_limit_override = nil
+	m.clearedFields[user.FieldUserRpmLimitOverride] = struct{}{}
+}
+
+// UserRpmLimitOverrideCleared returns if the "user_rpm_limit_override" field was cleared in this mutation.
+func (m *UserMutation) UserRpmLimitOverrideCleared() bool {
+	_, ok := m.clearedFields[user.FieldUserRpmLimitOverride]
+	return ok
+}
+
+// ResetUserRpmLimitOverride resets all changes to the "user_rpm_limit_override" field.
+func (m *UserMutation) ResetUserRpmLimitOverride() {
+	m.user_rpm_limit_override = nil
+	m.adduser_rpm_limit_override = nil
+	delete(m.clearedFields, user.FieldUserRpmLimitOverride)
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by ids.
 func (m *UserMutation) AddAPIKeyIDs(ids ...int64) {
 	if m.api_keys == nil {
@@ -40646,7 +40877,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -40716,6 +40947,12 @@ func (m *UserMutation) Fields() []string {
 	if m.rpm_limit != nil {
 		fields = append(fields, user.FieldRpmLimit)
 	}
+	if m.user_concurrency_override != nil {
+		fields = append(fields, user.FieldUserConcurrencyOverride)
+	}
+	if m.user_rpm_limit_override != nil {
+		fields = append(fields, user.FieldUserRpmLimitOverride)
+	}
 	return fields
 }
 
@@ -40770,6 +41007,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.TotalRecharged()
 	case user.FieldRpmLimit:
 		return m.RpmLimit()
+	case user.FieldUserConcurrencyOverride:
+		return m.UserConcurrencyOverride()
+	case user.FieldUserRpmLimitOverride:
+		return m.UserRpmLimitOverride()
 	}
 	return nil, false
 }
@@ -40825,6 +41066,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldTotalRecharged(ctx)
 	case user.FieldRpmLimit:
 		return m.OldRpmLimit(ctx)
+	case user.FieldUserConcurrencyOverride:
+		return m.OldUserConcurrencyOverride(ctx)
+	case user.FieldUserRpmLimitOverride:
+		return m.OldUserRpmLimitOverride(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -40995,6 +41240,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRpmLimit(v)
 		return nil
+	case user.FieldUserConcurrencyOverride:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserConcurrencyOverride(v)
+		return nil
+	case user.FieldUserRpmLimitOverride:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserRpmLimitOverride(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -41018,6 +41277,12 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addrpm_limit != nil {
 		fields = append(fields, user.FieldRpmLimit)
 	}
+	if m.adduser_concurrency_override != nil {
+		fields = append(fields, user.FieldUserConcurrencyOverride)
+	}
+	if m.adduser_rpm_limit_override != nil {
+		fields = append(fields, user.FieldUserRpmLimitOverride)
+	}
 	return fields
 }
 
@@ -41036,6 +41301,10 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedTotalRecharged()
 	case user.FieldRpmLimit:
 		return m.AddedRpmLimit()
+	case user.FieldUserConcurrencyOverride:
+		return m.AddedUserConcurrencyOverride()
+	case user.FieldUserRpmLimitOverride:
+		return m.AddedUserRpmLimitOverride()
 	}
 	return nil, false
 }
@@ -41080,6 +41349,20 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddRpmLimit(v)
 		return nil
+	case user.FieldUserConcurrencyOverride:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserConcurrencyOverride(v)
+		return nil
+	case user.FieldUserRpmLimitOverride:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserRpmLimitOverride(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
 }
@@ -41105,6 +41388,12 @@ func (m *UserMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(user.FieldBalanceNotifyThreshold) {
 		fields = append(fields, user.FieldBalanceNotifyThreshold)
+	}
+	if m.FieldCleared(user.FieldUserConcurrencyOverride) {
+		fields = append(fields, user.FieldUserConcurrencyOverride)
+	}
+	if m.FieldCleared(user.FieldUserRpmLimitOverride) {
+		fields = append(fields, user.FieldUserRpmLimitOverride)
 	}
 	return fields
 }
@@ -41137,6 +41426,12 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldBalanceNotifyThreshold:
 		m.ClearBalanceNotifyThreshold()
+		return nil
+	case user.FieldUserConcurrencyOverride:
+		m.ClearUserConcurrencyOverride()
+		return nil
+	case user.FieldUserRpmLimitOverride:
+		m.ClearUserRpmLimitOverride()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -41214,6 +41509,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldRpmLimit:
 		m.ResetRpmLimit()
+		return nil
+	case user.FieldUserConcurrencyOverride:
+		m.ResetUserConcurrencyOverride()
+		return nil
+	case user.FieldUserRpmLimitOverride:
+		m.ResetUserRpmLimitOverride()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

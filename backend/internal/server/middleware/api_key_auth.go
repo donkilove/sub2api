@@ -130,10 +130,13 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 		// ── 4. SimpleMode → early return ─────────────────────────────
 
 		if cfg.RunMode == config.RunModeSimple {
+			effectiveConcurrency := service.ResolveEffectiveUserConcurrencyLimit(apiKey.User, apiKey.Group)
 			c.Set(string(ContextKeyAPIKey), apiKey)
 			c.Set(string(ContextKeyUser), AuthSubject{
-				UserID:      apiKey.User.ID,
-				Concurrency: apiKey.User.Concurrency,
+				UserID:            apiKey.User.ID,
+				GroupID:           apiKey.GroupID,
+				Concurrency:       effectiveConcurrency.Limit,
+				ConcurrencySource: effectiveConcurrency.Source,
 			})
 			c.Set(string(ContextKeyUserRole), apiKey.User.Role)
 			setGroupContext(c, apiKey.Group)
@@ -225,10 +228,13 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 		if subscription != nil {
 			c.Set(string(ContextKeySubscription), subscription)
 		}
+		effectiveConcurrency := service.ResolveEffectiveUserConcurrencyLimit(apiKey.User, apiKey.Group)
 		c.Set(string(ContextKeyAPIKey), apiKey)
 		c.Set(string(ContextKeyUser), AuthSubject{
-			UserID:      apiKey.User.ID,
-			Concurrency: apiKey.User.Concurrency,
+			UserID:            apiKey.User.ID,
+			GroupID:           apiKey.GroupID,
+			Concurrency:       effectiveConcurrency.Limit,
+			ConcurrencySource: effectiveConcurrency.Source,
 		})
 		c.Set(string(ContextKeyUserRole), apiKey.User.Role)
 		setGroupContext(c, apiKey.Group)

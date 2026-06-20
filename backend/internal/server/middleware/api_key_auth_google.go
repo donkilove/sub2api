@@ -66,10 +66,13 @@ func APIKeyAuthWithSubscriptionGoogle(apiKeyService *service.APIKeyService, subs
 
 		// 简易模式：跳过余额和订阅检查
 		if cfg.RunMode == config.RunModeSimple {
+			effectiveConcurrency := service.ResolveEffectiveUserConcurrencyLimit(apiKey.User, apiKey.Group)
 			c.Set(string(ContextKeyAPIKey), apiKey)
 			c.Set(string(ContextKeyUser), AuthSubject{
-				UserID:      apiKey.User.ID,
-				Concurrency: apiKey.User.Concurrency,
+				UserID:            apiKey.User.ID,
+				GroupID:           apiKey.GroupID,
+				Concurrency:       effectiveConcurrency.Limit,
+				ConcurrencySource: effectiveConcurrency.Source,
 			})
 			c.Set(string(ContextKeyUserRole), apiKey.User.Role)
 			setGroupContext(c, apiKey.Group)
@@ -115,10 +118,13 @@ func APIKeyAuthWithSubscriptionGoogle(apiKeyService *service.APIKeyService, subs
 			}
 		}
 
+		effectiveConcurrency := service.ResolveEffectiveUserConcurrencyLimit(apiKey.User, apiKey.Group)
 		c.Set(string(ContextKeyAPIKey), apiKey)
 		c.Set(string(ContextKeyUser), AuthSubject{
-			UserID:      apiKey.User.ID,
-			Concurrency: apiKey.User.Concurrency,
+			UserID:            apiKey.User.ID,
+			GroupID:           apiKey.GroupID,
+			Concurrency:       effectiveConcurrency.Limit,
+			ConcurrencySource: effectiveConcurrency.Source,
 		})
 		c.Set(string(ContextKeyUserRole), apiKey.User.Role)
 		setGroupContext(c, apiKey.Group)

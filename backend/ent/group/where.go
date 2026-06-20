@@ -210,6 +210,11 @@ func RpmLimit(v int) predicate.Group {
 	return predicate.Group(sql.FieldEQ(FieldRpmLimit, v))
 }
 
+// UserConcurrencyLimit applies equality check predicate on the "user_concurrency_limit" field. It's identical to UserConcurrencyLimitEQ.
+func UserConcurrencyLimit(v int) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldUserConcurrencyLimit, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Group {
 	return predicate.Group(sql.FieldEQ(FieldCreatedAt, v))
@@ -1438,6 +1443,46 @@ func RpmLimitLT(v int) predicate.Group {
 // RpmLimitLTE applies the LTE predicate on the "rpm_limit" field.
 func RpmLimitLTE(v int) predicate.Group {
 	return predicate.Group(sql.FieldLTE(FieldRpmLimit, v))
+}
+
+// UserConcurrencyLimitEQ applies the EQ predicate on the "user_concurrency_limit" field.
+func UserConcurrencyLimitEQ(v int) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldUserConcurrencyLimit, v))
+}
+
+// UserConcurrencyLimitNEQ applies the NEQ predicate on the "user_concurrency_limit" field.
+func UserConcurrencyLimitNEQ(v int) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldUserConcurrencyLimit, v))
+}
+
+// UserConcurrencyLimitIn applies the In predicate on the "user_concurrency_limit" field.
+func UserConcurrencyLimitIn(vs ...int) predicate.Group {
+	return predicate.Group(sql.FieldIn(FieldUserConcurrencyLimit, vs...))
+}
+
+// UserConcurrencyLimitNotIn applies the NotIn predicate on the "user_concurrency_limit" field.
+func UserConcurrencyLimitNotIn(vs ...int) predicate.Group {
+	return predicate.Group(sql.FieldNotIn(FieldUserConcurrencyLimit, vs...))
+}
+
+// UserConcurrencyLimitGT applies the GT predicate on the "user_concurrency_limit" field.
+func UserConcurrencyLimitGT(v int) predicate.Group {
+	return predicate.Group(sql.FieldGT(FieldUserConcurrencyLimit, v))
+}
+
+// UserConcurrencyLimitGTE applies the GTE predicate on the "user_concurrency_limit" field.
+func UserConcurrencyLimitGTE(v int) predicate.Group {
+	return predicate.Group(sql.FieldGTE(FieldUserConcurrencyLimit, v))
+}
+
+// UserConcurrencyLimitLT applies the LT predicate on the "user_concurrency_limit" field.
+func UserConcurrencyLimitLT(v int) predicate.Group {
+	return predicate.Group(sql.FieldLT(FieldUserConcurrencyLimit, v))
+}
+
+// UserConcurrencyLimitLTE applies the LTE predicate on the "user_concurrency_limit" field.
+func UserConcurrencyLimitLTE(v int) predicate.Group {
+	return predicate.Group(sql.FieldLTE(FieldUserConcurrencyLimit, v))
 }
 
 // HasAPIKeys applies the HasEdge predicate on the "api_keys" edge.

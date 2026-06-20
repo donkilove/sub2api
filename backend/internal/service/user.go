@@ -50,9 +50,17 @@ type User struct {
 	BalanceNotifyExtraEmails   []NotifyEmailEntry
 	TotalRecharged             float64
 
-	// RPMLimit 用户级每分钟请求数上限（0 = 不限制）。仅在所用分组未设置 rpm_limit
-	// 且该 (用户, 分组) 无 rpm_override 时作为全局兜底生效，计数键 rpm:u:{userID}:{min}。
+	// RPMLimit 旧版用户级每分钟请求数上限（0 = 不限制）。
+	// 新版限流中心使用 UserRPMLimitOverride 表达可空覆盖语义；该字段保留用于兼容旧接口与老数据。
 	RPMLimit int
+
+	// UserConcurrencyOverride 用户独立并发覆盖。
+	// nil = 继承分组默认；0 = 不限流；>0 = 用户全局并发上限，覆盖任何分组默认。
+	UserConcurrencyOverride *int
+
+	// UserRPMLimitOverride 用户独立 RPM 覆盖。
+	// nil = 继承分组默认；0 = 不限流；>0 = 用户全局 RPM 上限，覆盖任何分组默认。
+	UserRPMLimitOverride *int
 
 	// UserGroupRPMOverride 来自 auth cache snapshot 的 (user, group) RPM 覆盖值。
 	// nil = 该 API Key 对应的 (user, group) 无 override；非 nil 时 checkRPM 直接使用，

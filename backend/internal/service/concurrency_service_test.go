@@ -34,6 +34,7 @@ type stubConcurrencyCacheForTest struct {
 	// 记录调用
 	releasedAccountIDs []int64
 	releasedRequestIDs []string
+	acquiredUserIDs    []int64
 	loadBatchCalls     atomic.Int64
 }
 
@@ -69,7 +70,8 @@ func (c *stubConcurrencyCacheForTest) DecrementAccountWaitCount(_ context.Contex
 func (c *stubConcurrencyCacheForTest) GetAccountWaitingCount(_ context.Context, _ int64) (int, error) {
 	return c.waitCount, c.waitCountErr
 }
-func (c *stubConcurrencyCacheForTest) AcquireUserSlot(_ context.Context, _ int64, _ int, _ string) (bool, error) {
+func (c *stubConcurrencyCacheForTest) AcquireUserSlot(_ context.Context, userID int64, _ int, _ string) (bool, error) {
+	c.acquiredUserIDs = append(c.acquiredUserIDs, userID)
 	return c.acquireResult, c.acquireErr
 }
 func (c *stubConcurrencyCacheForTest) ReleaseUserSlot(_ context.Context, _ int64, _ string) error {
@@ -195,6 +197,21 @@ func TestAcquireUserSlot_UnlimitedConcurrency(t *testing.T) {
 	result, err := svc.AcquireUserSlot(context.Background(), 1, 0)
 	require.NoError(t, err)
 	require.True(t, result.Acquired)
+}
+
+func TestAcquireUserGroupSlot_UsesStableDistinctSyntheticUserID(t *testing.T) {
+	cache := &stubConcurrencyCacheForTest{acquireResult: true}
+	svc := NewConcurrencyService(cache)
+
+	result, err := svc.AcquireUserGroupSlot(context.Background(), 7, 11, 3)
+	require.NoError(t, err)
+	require.True(t, result.Acquired)
+	require.Len(t, cache.acquiredUserIDs, 1)
+
+	slotID := cache.acquiredUserIDs[0]
+	require.Equal(t, UserGroupConcurrencySlotID(7, 11), slotID)
+	require.NotEqual(t, int64(7), slotID)
+	require.NotEqual(t, UserGroupConcurrencySlotID(7, 12), slotID)
 }
 
 func TestGenerateRequestID_UsesStablePrefixAndMonotonicCounter(t *testing.T) {

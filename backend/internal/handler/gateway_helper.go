@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	middleware2 "github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -211,6 +212,17 @@ func (h *ConcurrencyHelper) TryAcquireUserSlot(ctx context.Context, userID int64
 	return result.ReleaseFunc, true, nil
 }
 
+func subjectConcurrencySlotID(subject middleware2.AuthSubject) int64 {
+	if subject.ConcurrencySource == service.UserLimitSourceGroup && subject.GroupID != nil {
+		return service.UserGroupConcurrencySlotID(subject.UserID, *subject.GroupID)
+	}
+	return subject.UserID
+}
+
+func (h *ConcurrencyHelper) TryAcquireSubjectSlot(ctx context.Context, subject middleware2.AuthSubject) (func(), bool, error) {
+	return h.TryAcquireUserSlot(ctx, subjectConcurrencySlotID(subject), subject.Concurrency)
+}
+
 // TryAcquireAccountSlot 尝试立即获取账号并发槽位。
 // 返回值: (releaseFunc, acquired, error)
 func (h *ConcurrencyHelper) TryAcquireAccountSlot(ctx context.Context, accountID int64, maxConcurrency int) (func(), bool, error) {
@@ -229,6 +241,10 @@ func (h *ConcurrencyHelper) TryAcquireAccountSlot(ctx context.Context, accountID
 // streamStarted is updated if streaming response has begun.
 func (h *ConcurrencyHelper) AcquireUserSlotWithWait(c *gin.Context, userID int64, maxConcurrency int, isStream bool, streamStarted *bool) (func(), error) {
 	return h.acquireUserSlotWithWaitTimeout(c, userID, maxConcurrency, maxConcurrencyWait, isStream, streamStarted)
+}
+
+func (h *ConcurrencyHelper) AcquireSubjectSlotWithWait(c *gin.Context, subject middleware2.AuthSubject, isStream bool, streamStarted *bool) (func(), error) {
+	return h.acquireUserSlotWithWaitTimeout(c, subjectConcurrencySlotID(subject), subject.Concurrency, maxConcurrencyWait, isStream, streamStarted)
 }
 
 func (h *ConcurrencyHelper) acquireUserSlotWithWaitTimeout(c *gin.Context, userID int64, maxConcurrency int, timeout time.Duration, isStream bool, streamStarted *bool) (func(), error) {

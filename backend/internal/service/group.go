@@ -65,8 +65,12 @@ type Group struct {
 	ModelsListConfig            GroupModelsListConfig
 
 	// RPMLimit 分组级每分钟请求数上限（0 = 不限制）。
-	// 一旦设置即接管该分组用户的限流（覆盖用户级 rpm_limit），可被 user-group rpm_override 进一步覆盖。
+	// 作为使用该分组时的默认用户 RPM 上限；用户独立覆盖存在时不生效。
 	RPMLimit int
+
+	// UserConcurrencyLimit 使用该分组时的默认用户并发上限。
+	// 0 = 不限流；用户独立覆盖存在时不生效。
+	UserConcurrencyLimit int
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

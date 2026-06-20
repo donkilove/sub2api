@@ -131,26 +131,32 @@ type AdminService interface {
 
 // CreateUserInput represents input for creating a new user via admin operations.
 type CreateUserInput struct {
-	Email         string
-	Password      string
-	Username      string
-	Notes         string
-	Balance       *float64
-	Concurrency   int
-	RPMLimit      int
-	AllowedGroups []int64
+	Email                   string
+	Password                string
+	Username                string
+	Notes                   string
+	Balance                 *float64
+	Concurrency             int
+	RPMLimit                int
+	UserConcurrencyOverride *int
+	UserRPMLimitOverride    *int
+	AllowedGroups           []int64
 }
 
 type UpdateUserInput struct {
-	Email         string
-	Password      string
-	Username      *string
-	Notes         *string
-	Balance       *float64 // 使用指针区分"未提供"和"设置为0"
-	Concurrency   *int     // 使用指针区分"未提供"和"设置为0"
-	RPMLimit      *int     // 使用指针区分"未提供"和"设置为0"
-	Status        string
-	AllowedGroups *[]int64 // 使用指针区分"未提供"和"设置为空数组"
+	Email                        string
+	Password                     string
+	Username                     *string
+	Notes                        *string
+	Balance                      *float64 // 使用指针区分"未提供"和"设置为0"
+	Concurrency                  *int     // 使用指针区分"未提供"和"设置为0"
+	RPMLimit                     *int     // 使用指针区分"未提供"和"设置为0"
+	UserConcurrencyOverride      *int
+	ClearUserConcurrencyOverride bool
+	UserRPMLimitOverride         *int
+	ClearUserRPMLimitOverride    bool
+	Status                       string
+	AllowedGroups                *[]int64 // 使用指针区分"未提供"和"设置为空数组"
 	// GroupRates 用户专属分组倍率配置
 	// map[groupID]*rate，nil 表示删除该分组的专属倍率
 	GroupRates map[int64]*float64
@@ -228,8 +234,10 @@ type CreateGroupInput struct {
 	RequirePrivacySet           bool
 	MessagesDispatchModelConfig OpenAIMessagesDispatchModelConfig
 	ModelsListConfig            GroupModelsListConfig
-	// RPMLimit 分组 RPM 上限（0 = 不限制）
+	// RPMLimit 分组默认用户 RPM 上限（0 = 不限制）
 	RPMLimit int
+	// UserConcurrencyLimit 分组默认用户并发上限（nil = 默认 5，0 = 不限制）
+	UserConcurrencyLimit *int
 	// 从指定分组复制账号（创建分组后在同一事务内绑定）
 	CopyAccountsFromGroupIDs []int64
 }
@@ -269,8 +277,10 @@ type UpdateGroupInput struct {
 	RequirePrivacySet           *bool
 	MessagesDispatchModelConfig *OpenAIMessagesDispatchModelConfig
 	ModelsListConfig            *GroupModelsListConfig
-	// RPMLimit 分组 RPM 上限（0 = 不限制），nil 表示未提供不改动。
+	// RPMLimit 分组默认用户 RPM 上限（0 = 不限制），nil 表示未提供不改动。
 	RPMLimit *int
+	// UserConcurrencyLimit 分组默认用户并发上限（0 = 不限制），nil 表示未提供不改动。
+	UserConcurrencyLimit *int
 	// 从指定分组复制账号（同步操作：先清空当前分组的账号绑定，再绑定源分组的账号）
 	CopyAccountsFromGroupIDs []int64
 }
@@ -700,17 +710,25 @@ func (s *adminServiceImpl) CreateUser(ctx context.Context, input *CreateUserInpu
 	} else if s.settingService != nil {
 		balance = s.settingService.GetDefaultBalance(ctx)
 	}
+	if input.UserConcurrencyOverride != nil && *input.UserConcurrencyOverride < 0 {
+		return nil, errors.New("user_concurrency_override must be >= 0")
+	}
+	if input.UserRPMLimitOverride != nil && *input.UserRPMLimitOverride < 0 {
+		return nil, errors.New("user_rpm_limit_override must be >= 0")
+	}
 
 	user := &User{
-		Email:         input.Email,
-		Username:      input.Username,
-		Notes:         input.Notes,
-		Role:          RoleUser, // Always create as regular user, never admin
-		Balance:       balance,
-		Concurrency:   input.Concurrency,
-		RPMLimit:      input.RPMLimit,
-		Status:        StatusActive,
-		AllowedGroups: input.AllowedGroups,
+		Email:                   input.Email,
+		Username:                input.Username,
+		Notes:                   input.Notes,
+		Role:                    RoleUser, // Always create as regular user, never admin
+		Balance:                 balance,
+		Concurrency:             input.Concurrency,
+		RPMLimit:                input.RPMLimit,
+		UserConcurrencyOverride: input.UserConcurrencyOverride,
+		UserRPMLimitOverride:    input.UserRPMLimitOverride,
+		Status:                  StatusActive,
+		AllowedGroups:           input.AllowedGroups,
 	}
 	if err := user.SetPassword(input.Password); err != nil {
 		return nil, err
@@ -763,6 +781,8 @@ func (s *adminServiceImpl) UpdateUser(ctx context.Context, id int64, input *Upda
 	oldStatus := user.Status
 	oldRole := user.Role
 	oldRPMLimit := user.RPMLimit
+	oldUserConcurrencyOverride := user.UserConcurrencyOverride
+	oldUserRPMLimitOverride := user.UserRPMLimitOverride
 	oldAllowedGroups := append([]int64(nil), user.AllowedGroups...)
 
 	if input.Email != "" {
@@ -792,6 +812,22 @@ func (s *adminServiceImpl) UpdateUser(ctx context.Context, id int64, input *Upda
 	if input.RPMLimit != nil {
 		user.RPMLimit = *input.RPMLimit
 	}
+	if input.UserConcurrencyOverride != nil {
+		if *input.UserConcurrencyOverride < 0 {
+			return nil, errors.New("user_concurrency_override must be >= 0")
+		}
+		user.UserConcurrencyOverride = input.UserConcurrencyOverride
+	} else if input.ClearUserConcurrencyOverride {
+		user.UserConcurrencyOverride = nil
+	}
+	if input.UserRPMLimitOverride != nil {
+		if *input.UserRPMLimitOverride < 0 {
+			return nil, errors.New("user_rpm_limit_override must be >= 0")
+		}
+		user.UserRPMLimitOverride = input.UserRPMLimitOverride
+	} else if input.ClearUserRPMLimitOverride {
+		user.UserRPMLimitOverride = nil
+	}
 
 	if input.AllowedGroups != nil {
 		user.AllowedGroups = *input.AllowedGroups
@@ -811,7 +847,13 @@ func (s *adminServiceImpl) UpdateUser(ctx context.Context, id int64, input *Upda
 	if s.authCacheInvalidator != nil {
 		// RPMLimit 直接参与 billing_cache_service.checkRPM 的三级级联，
 		// allowed_groups 参与 API Key 专属分组授权判断；不失效缓存会让修改在一个 L2 TTL 内失去效果。
-		if user.Concurrency != oldConcurrency || user.Status != oldStatus || user.Role != oldRole || user.RPMLimit != oldRPMLimit || !sameInt64Set(user.AllowedGroups, oldAllowedGroups) {
+		if user.Concurrency != oldConcurrency ||
+			user.Status != oldStatus ||
+			user.Role != oldRole ||
+			user.RPMLimit != oldRPMLimit ||
+			!sameIntPtr(user.UserConcurrencyOverride, oldUserConcurrencyOverride) ||
+			!sameIntPtr(user.UserRPMLimitOverride, oldUserRPMLimitOverride) ||
+			!sameInt64Set(user.AllowedGroups, oldAllowedGroups) {
 			s.authCacheInvalidator.InvalidateAuthCacheByUserID(ctx, user.ID)
 		}
 	}
@@ -858,6 +900,13 @@ func sameInt64Set(a, b []int64) bool {
 		counts[v]--
 	}
 	return true
+}
+
+func sameIntPtr(a, b *int) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	return *a == *b
 }
 
 func (s *adminServiceImpl) DeleteUser(ctx context.Context, id int64) error {
@@ -1822,6 +1871,13 @@ func (s *adminServiceImpl) CreateGroup(ctx context.Context, input *CreateGroupIn
 		}
 		imageRateMultiplier = *input.ImageRateMultiplier
 	}
+	userConcurrencyLimit := 5
+	if input.UserConcurrencyLimit != nil {
+		if *input.UserConcurrencyLimit < 0 {
+			return nil, errors.New("user_concurrency_limit must be >= 0")
+		}
+		userConcurrencyLimit = *input.UserConcurrencyLimit
+	}
 
 	// 校验降级分组
 	if input.FallbackGroupID != nil {
@@ -1908,6 +1964,7 @@ func (s *adminServiceImpl) CreateGroup(ctx context.Context, input *CreateGroupIn
 		MessagesDispatchModelConfig:     normalizeOpenAIMessagesDispatchModelConfig(input.MessagesDispatchModelConfig),
 		ModelsListConfig:                normalizeGroupModelsListConfig(input.ModelsListConfig),
 		RPMLimit:                        input.RPMLimit,
+		UserConcurrencyLimit:            userConcurrencyLimit,
 	}
 	sanitizeGroupMessagesDispatchFields(group)
 	if err := s.groupRepo.Create(ctx, group); err != nil {
@@ -2159,6 +2216,12 @@ func (s *adminServiceImpl) UpdateGroup(ctx context.Context, id int64, input *Upd
 	}
 	if input.RPMLimit != nil {
 		group.RPMLimit = *input.RPMLimit
+	}
+	if input.UserConcurrencyLimit != nil {
+		if *input.UserConcurrencyLimit < 0 {
+			return nil, errors.New("user_concurrency_limit must be >= 0")
+		}
+		group.UserConcurrencyLimit = *input.UserConcurrencyLimit
 	}
 	sanitizeGroupMessagesDispatchFields(group)
 

@@ -91,7 +91,9 @@ export interface User {
   role: 'admin' | 'user' // User role for authorization
   balance: number // User balance for API usage
   concurrency: number // Allowed concurrent requests
-  rpm_limit?: number // User-level RPM cap (0 = unlimited); effective as fallback when group has no rpm_limit
+  rpm_limit?: number // Legacy user-level RPM cap, kept for compatibility
+  user_concurrency_override?: number | null // Null = inherit group default, 0 = unlimited, >0 = user override
+  user_rpm_limit_override?: number | null // Null = inherit group default, 0 = unlimited, >0 = user override
   status: 'active' | 'disabled' // Account status
   allowed_groups: number[] | null // Allowed group IDs (null = all non-exclusive groups)
   balance_notify_enabled: boolean
@@ -512,7 +514,8 @@ export interface Group {
   description: string | null
   platform: GroupPlatform
   rate_multiplier: number
-  rpm_limit?: number // Group-level RPM cap (0 = unlimited); overrides user-level rpm_limit when set
+  rpm_limit?: number // Group default user RPM cap (0 = unlimited)
+  user_concurrency_limit?: number // Group default user concurrency cap (0 = unlimited)
   is_exclusive: boolean
   status: 'active' | 'inactive'
   subscription_type: SubscriptionType
@@ -656,6 +659,7 @@ export interface CreateGroupRequest {
   model_routing?: Record<string, number[]> | null
   model_routing_enabled?: boolean
   rpm_limit?: number
+  user_concurrency_limit?: number
   require_oauth_only?: boolean
   require_privacy_set?: boolean
   // 从指定分组复制账号
@@ -691,6 +695,7 @@ export interface UpdateGroupRequest {
   model_routing?: Record<string, number[]> | null
   model_routing_enabled?: boolean
   rpm_limit?: number
+  user_concurrency_limit?: number
   require_oauth_only?: boolean
   require_privacy_set?: boolean
   copy_accounts_from_group_ids?: number[]
@@ -1545,6 +1550,8 @@ export interface UpdateUserRequest {
   role?: 'admin' | 'user'
   balance?: number
   concurrency?: number
+  user_concurrency_override?: number | null
+  user_rpm_limit_override?: number | null
   status?: 'active' | 'disabled'
   allowed_groups?: number[] | null
   // 用户专属分组倍率配置 (group_id -> rate_multiplier | null)

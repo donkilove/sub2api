@@ -340,6 +340,34 @@ func (_c *UserCreate) SetNillableRpmLimit(v *int) *UserCreate {
 	return _c
 }
 
+// SetUserConcurrencyOverride sets the "user_concurrency_override" field.
+func (_c *UserCreate) SetUserConcurrencyOverride(v int) *UserCreate {
+	_c.mutation.SetUserConcurrencyOverride(v)
+	return _c
+}
+
+// SetNillableUserConcurrencyOverride sets the "user_concurrency_override" field if the given value is not nil.
+func (_c *UserCreate) SetNillableUserConcurrencyOverride(v *int) *UserCreate {
+	if v != nil {
+		_c.SetUserConcurrencyOverride(*v)
+	}
+	return _c
+}
+
+// SetUserRpmLimitOverride sets the "user_rpm_limit_override" field.
+func (_c *UserCreate) SetUserRpmLimitOverride(v int) *UserCreate {
+	_c.mutation.SetUserRpmLimitOverride(v)
+	return _c
+}
+
+// SetNillableUserRpmLimitOverride sets the "user_rpm_limit_override" field if the given value is not nil.
+func (_c *UserCreate) SetNillableUserRpmLimitOverride(v *int) *UserCreate {
+	if v != nil {
+		_c.SetUserRpmLimitOverride(*v)
+	}
+	return _c
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_c *UserCreate) AddAPIKeyIDs(ids ...int64) *UserCreate {
 	_c.mutation.AddAPIKeyIDs(ids...)
@@ -842,6 +870,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.RpmLimit(); ok {
 		_spec.SetField(user.FieldRpmLimit, field.TypeInt, value)
 		_node.RpmLimit = value
+	}
+	if value, ok := _c.mutation.UserConcurrencyOverride(); ok {
+		_spec.SetField(user.FieldUserConcurrencyOverride, field.TypeInt, value)
+		_node.UserConcurrencyOverride = &value
+	}
+	if value, ok := _c.mutation.UserRpmLimitOverride(); ok {
+		_spec.SetField(user.FieldUserRpmLimitOverride, field.TypeInt, value)
+		_node.UserRpmLimitOverride = &value
 	}
 	if nodes := _c.mutation.APIKeysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1437,6 +1473,54 @@ func (u *UserUpsert) AddRpmLimit(v int) *UserUpsert {
 	return u
 }
 
+// SetUserConcurrencyOverride sets the "user_concurrency_override" field.
+func (u *UserUpsert) SetUserConcurrencyOverride(v int) *UserUpsert {
+	u.Set(user.FieldUserConcurrencyOverride, v)
+	return u
+}
+
+// UpdateUserConcurrencyOverride sets the "user_concurrency_override" field to the value that was provided on create.
+func (u *UserUpsert) UpdateUserConcurrencyOverride() *UserUpsert {
+	u.SetExcluded(user.FieldUserConcurrencyOverride)
+	return u
+}
+
+// AddUserConcurrencyOverride adds v to the "user_concurrency_override" field.
+func (u *UserUpsert) AddUserConcurrencyOverride(v int) *UserUpsert {
+	u.Add(user.FieldUserConcurrencyOverride, v)
+	return u
+}
+
+// ClearUserConcurrencyOverride clears the value of the "user_concurrency_override" field.
+func (u *UserUpsert) ClearUserConcurrencyOverride() *UserUpsert {
+	u.SetNull(user.FieldUserConcurrencyOverride)
+	return u
+}
+
+// SetUserRpmLimitOverride sets the "user_rpm_limit_override" field.
+func (u *UserUpsert) SetUserRpmLimitOverride(v int) *UserUpsert {
+	u.Set(user.FieldUserRpmLimitOverride, v)
+	return u
+}
+
+// UpdateUserRpmLimitOverride sets the "user_rpm_limit_override" field to the value that was provided on create.
+func (u *UserUpsert) UpdateUserRpmLimitOverride() *UserUpsert {
+	u.SetExcluded(user.FieldUserRpmLimitOverride)
+	return u
+}
+
+// AddUserRpmLimitOverride adds v to the "user_rpm_limit_override" field.
+func (u *UserUpsert) AddUserRpmLimitOverride(v int) *UserUpsert {
+	u.Add(user.FieldUserRpmLimitOverride, v)
+	return u
+}
+
+// ClearUserRpmLimitOverride clears the value of the "user_rpm_limit_override" field.
+func (u *UserUpsert) ClearUserRpmLimitOverride() *UserUpsert {
+	u.SetNull(user.FieldUserRpmLimitOverride)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -1864,6 +1948,62 @@ func (u *UserUpsertOne) AddRpmLimit(v int) *UserUpsertOne {
 func (u *UserUpsertOne) UpdateRpmLimit() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateRpmLimit()
+	})
+}
+
+// SetUserConcurrencyOverride sets the "user_concurrency_override" field.
+func (u *UserUpsertOne) SetUserConcurrencyOverride(v int) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUserConcurrencyOverride(v)
+	})
+}
+
+// AddUserConcurrencyOverride adds v to the "user_concurrency_override" field.
+func (u *UserUpsertOne) AddUserConcurrencyOverride(v int) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.AddUserConcurrencyOverride(v)
+	})
+}
+
+// UpdateUserConcurrencyOverride sets the "user_concurrency_override" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateUserConcurrencyOverride() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUserConcurrencyOverride()
+	})
+}
+
+// ClearUserConcurrencyOverride clears the value of the "user_concurrency_override" field.
+func (u *UserUpsertOne) ClearUserConcurrencyOverride() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUserConcurrencyOverride()
+	})
+}
+
+// SetUserRpmLimitOverride sets the "user_rpm_limit_override" field.
+func (u *UserUpsertOne) SetUserRpmLimitOverride(v int) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUserRpmLimitOverride(v)
+	})
+}
+
+// AddUserRpmLimitOverride adds v to the "user_rpm_limit_override" field.
+func (u *UserUpsertOne) AddUserRpmLimitOverride(v int) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.AddUserRpmLimitOverride(v)
+	})
+}
+
+// UpdateUserRpmLimitOverride sets the "user_rpm_limit_override" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateUserRpmLimitOverride() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUserRpmLimitOverride()
+	})
+}
+
+// ClearUserRpmLimitOverride clears the value of the "user_rpm_limit_override" field.
+func (u *UserUpsertOne) ClearUserRpmLimitOverride() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUserRpmLimitOverride()
 	})
 }
 
@@ -2460,6 +2600,62 @@ func (u *UserUpsertBulk) AddRpmLimit(v int) *UserUpsertBulk {
 func (u *UserUpsertBulk) UpdateRpmLimit() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.UpdateRpmLimit()
+	})
+}
+
+// SetUserConcurrencyOverride sets the "user_concurrency_override" field.
+func (u *UserUpsertBulk) SetUserConcurrencyOverride(v int) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUserConcurrencyOverride(v)
+	})
+}
+
+// AddUserConcurrencyOverride adds v to the "user_concurrency_override" field.
+func (u *UserUpsertBulk) AddUserConcurrencyOverride(v int) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.AddUserConcurrencyOverride(v)
+	})
+}
+
+// UpdateUserConcurrencyOverride sets the "user_concurrency_override" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateUserConcurrencyOverride() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUserConcurrencyOverride()
+	})
+}
+
+// ClearUserConcurrencyOverride clears the value of the "user_concurrency_override" field.
+func (u *UserUpsertBulk) ClearUserConcurrencyOverride() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUserConcurrencyOverride()
+	})
+}
+
+// SetUserRpmLimitOverride sets the "user_rpm_limit_override" field.
+func (u *UserUpsertBulk) SetUserRpmLimitOverride(v int) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUserRpmLimitOverride(v)
+	})
+}
+
+// AddUserRpmLimitOverride adds v to the "user_rpm_limit_override" field.
+func (u *UserUpsertBulk) AddUserRpmLimitOverride(v int) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.AddUserRpmLimitOverride(v)
+	})
+}
+
+// UpdateUserRpmLimitOverride sets the "user_rpm_limit_override" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateUserRpmLimitOverride() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUserRpmLimitOverride()
+	})
+}
+
+// ClearUserRpmLimitOverride clears the value of the "user_rpm_limit_override" field.
+func (u *UserUpsertBulk) ClearUserRpmLimitOverride() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUserRpmLimitOverride()
 	})
 }
 

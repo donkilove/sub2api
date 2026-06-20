@@ -159,6 +159,8 @@ func (r *apiKeyRepository) GetByKeyForAuth(ctx context.Context, key string) (*se
 				user.FieldLastLoginAt,
 				user.FieldLastActiveAt,
 				user.FieldRpmLimit,
+				user.FieldUserConcurrencyOverride,
+				user.FieldUserRpmLimitOverride,
 			)
 			q.WithAllowedGroups(func(gq *dbent.GroupQuery) {
 				gq.Select(group.FieldID)
@@ -194,6 +196,7 @@ func (r *apiKeyRepository) GetByKeyForAuth(ctx context.Context, key string) (*se
 				group.FieldMessagesDispatchModelConfig,
 				group.FieldModelsListConfig,
 				group.FieldRpmLimit,
+				group.FieldUserConcurrencyLimit,
 			)
 		}).
 		Only(ctx)
@@ -764,6 +767,8 @@ func userEntityToService(u *dbent.User) *service.User {
 		BalanceNotifyThreshold:     u.BalanceNotifyThreshold,
 		TotalRecharged:             u.TotalRecharged,
 		RPMLimit:                   u.RpmLimit,
+		UserConcurrencyOverride:    u.UserConcurrencyOverride,
+		UserRPMLimitOverride:       u.UserRpmLimitOverride,
 		CreatedAt:                  u.CreatedAt,
 		UpdatedAt:                  u.UpdatedAt,
 		DeletedAt:                  u.DeletedAt,
@@ -814,6 +819,7 @@ func groupEntityToService(g *dbent.Group) *service.Group {
 		MessagesDispatchModelConfig:     g.MessagesDispatchModelConfig,
 		ModelsListConfig:                g.ModelsListConfig,
 		RPMLimit:                        g.RpmLimit,
+		UserConcurrencyLimit:            g.UserConcurrencyLimit,
 		CreatedAt:                       g.CreatedAt,
 		UpdatedAt:                       g.UpdatedAt,
 	}

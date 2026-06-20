@@ -145,6 +145,12 @@ type UserWithConcurrency struct {
 	MaxConcurrency int
 }
 
+type UserGroupWithConcurrency struct {
+	UserID         int64
+	GroupID        int64
+	MaxConcurrency int
+}
+
 type AccountLoadInfo struct {
 	AccountID          int64
 	CurrentConcurrency int
@@ -157,6 +163,13 @@ type UserLoadInfo struct {
 	CurrentConcurrency int
 	WaitingCount       int
 	LoadRate           int // 0-100+ (percent)
+}
+
+func UserGroupConcurrencySlotID(userID, groupID int64) int64 {
+	if groupID <= 0 {
+		return userID
+	}
+	return -((userID << 32) | (groupID & 0xffffffff))
 }
 
 // AcquireAccountSlot attempts to acquire a concurrency slot for an account.
@@ -235,6 +248,13 @@ func (s *ConcurrencyService) AcquireUserSlot(ctx context.Context, userID int64, 
 		Acquired:    false,
 		ReleaseFunc: nil,
 	}, nil
+}
+
+// AcquireUserGroupSlot attempts to acquire a user/group-scoped concurrency slot.
+// The underlying cache is keyed via the user slot namespace with a synthetic stable ID,
+// preserving existing Redis primitives while keeping group defaults isolated per group.
+func (s *ConcurrencyService) AcquireUserGroupSlot(ctx context.Context, userID, groupID int64, maxConcurrency int) (*AcquireResult, error) {
+	return s.AcquireUserSlot(ctx, UserGroupConcurrencySlotID(userID, groupID), maxConcurrency)
 }
 
 // ============================================

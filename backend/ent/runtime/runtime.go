@@ -888,6 +888,10 @@ func init() {
 	groupDescRpmLimit := groupFields[31].Descriptor()
 	// group.DefaultRpmLimit holds the default value on creation for the rpm_limit field.
 	group.DefaultRpmLimit = groupDescRpmLimit.Default.(int)
+	// groupDescUserConcurrencyLimit is the schema descriptor for user_concurrency_limit field.
+	groupDescUserConcurrencyLimit := groupFields[32].Descriptor()
+	// group.DefaultUserConcurrencyLimit holds the default value on creation for the user_concurrency_limit field.
+	group.DefaultUserConcurrencyLimit = groupDescUserConcurrencyLimit.Default.(int)
 	idempotencyrecordMixin := schema.IdempotencyRecord{}.Mixin()
 	idempotencyrecordMixinFields0 := idempotencyrecordMixin[0].Fields()
 	_ = idempotencyrecordMixinFields0

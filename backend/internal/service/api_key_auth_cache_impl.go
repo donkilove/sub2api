@@ -235,6 +235,8 @@ func (s *APIKeyService) snapshotFromAPIKey(ctx context.Context, apiKey *APIKey) 
 			BalanceNotifyExtraEmails:   apiKey.User.BalanceNotifyExtraEmails,
 			TotalRecharged:             apiKey.User.TotalRecharged,
 			RPMLimit:                   apiKey.User.RPMLimit,
+			UserConcurrencyOverride:    apiKey.User.UserConcurrencyOverride,
+			UserRPMLimitOverride:       apiKey.User.UserRPMLimitOverride,
 		},
 	}
 
@@ -276,6 +278,7 @@ func (s *APIKeyService) snapshotFromAPIKey(ctx context.Context, apiKey *APIKey) 
 			MessagesDispatchModelConfig:     apiKey.Group.MessagesDispatchModelConfig,
 			ModelsListConfig:                apiKey.Group.ModelsListConfig,
 			RPMLimit:                        apiKey.Group.RPMLimit,
+			UserConcurrencyLimit:            apiKey.Group.UserConcurrencyLimit,
 		}
 	}
 	return snapshot
@@ -315,6 +318,8 @@ func (s *APIKeyService) snapshotToAPIKey(key string, snapshot *APIKeyAuthSnapsho
 			BalanceNotifyExtraEmails:   snapshot.User.BalanceNotifyExtraEmails,
 			TotalRecharged:             snapshot.User.TotalRecharged,
 			RPMLimit:                   snapshot.User.RPMLimit,
+			UserConcurrencyOverride:    snapshot.User.UserConcurrencyOverride,
+			UserRPMLimitOverride:       snapshot.User.UserRPMLimitOverride,
 			UserGroupRPMOverride:       snapshot.User.UserGroupRPMOverride,
 		},
 	}
@@ -349,6 +354,7 @@ func (s *APIKeyService) snapshotToAPIKey(key string, snapshot *APIKeyAuthSnapsho
 			MessagesDispatchModelConfig:     snapshot.Group.MessagesDispatchModelConfig,
 			ModelsListConfig:                snapshot.Group.ModelsListConfig,
 			RPMLimit:                        snapshot.Group.RPMLimit,
+			UserConcurrencyLimit:            snapshot.Group.UserConcurrencyLimit,
 		}
 	}
 	s.compileAPIKeyIPRules(apiKey)

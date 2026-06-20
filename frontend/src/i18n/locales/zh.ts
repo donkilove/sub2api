@@ -5609,71 +5609,43 @@ export default {
 
     limitCenter: {
       title: '限流中心',
-      description: '按用户与分组批量管理并发和 RPM 限制。',
+      description: '按分组默认与用户覆盖管理并发和 RPM 限制。',
       tabs: {
         group: '按分组',
         user: '按用户'
       },
-      stats: {
-        groupDefaultRpm: '分组默认 RPM',
-        usersInGroup: '可用用户',
-        rpmOverrides: 'RPM 覆盖',
-        selectedUsers: '已选用户'
-      },
-      groupPicker: '分组',
-      groupRpm: '分组 RPM',
-      capacityConcurrency: '分组并发',
-      capacityRpm: '分组 RPM 用量',
-      searchUsers: '筛选用户',
-      searchPlaceholder: '搜索邮箱、用户名或备注',
-      emptyUsers: '当前分组暂无匹配用户',
+      searchGroups: '搜索分组名称或描述',
+      searchUsers: '搜索邮箱、用户名或备注',
+      inheritPlaceholder: '继承分组',
+      emptyGroups: '暂无匹配分组',
+      emptyUsers: '暂无匹配用户',
       columns: {
         user: '用户',
         group: '分组',
-        concurrency: '并发',
-        userRpm: '用户全局 RPM',
-        groupRpm: '分组生效 RPM',
+        groupConcurrency: '分组默认并发',
+        groupRpm: '分组默认 RPM',
+        userConcurrency: '用户覆盖并发',
+        userRpm: '用户覆盖 RPM',
         status: '状态',
         source: '来源'
       },
       source: {
-        override: '用户覆盖',
-        group: '分组默认',
+        concurrency: '并发：{source}',
+        rpm: 'RPM：{source}',
+        user: '用户覆盖',
+        group: '继承分组',
+        unlimited: '不限流',
         none: '未设置'
       },
-      bulkPanel: {
-        title: '批量操作',
-        selected: '已选用户',
-        concurrency: '用户全局并发',
-        set: '设为',
-        add: '增加',
-        applyConcurrency: '应用并发',
-        rpmOverride: '该分组 RPM 覆盖',
-        applyRpm: '设置 RPM',
-        clearRpm: '清除覆盖',
-        clearSelection: '清空选择'
-      },
-      inspect: {
-        searchPlaceholder: '搜索用户邮箱或用户名',
-        results: '用户',
-        empty: '暂无匹配用户',
-        pickUser: '选择一个用户查看生效限流',
-        userRpmUsed: '当前全局 RPM',
-        used: '已用',
-        noRpmGroups: '该用户暂无分组 RPM 记录'
-      },
       messages: {
-        concurrencySaved: '已更新 {count} 个用户的并发限制',
-        rpmSaved: 'RPM 覆盖已保存',
-        rpmCleared: '已清除所选用户的 RPM 覆盖'
+        groupSaved: '分组限流已保存',
+        userSaved: '用户覆盖已保存'
       },
       errors: {
         loadGroups: '加载分组失败',
         loadUsers: '加载用户失败',
-        loadRpm: '加载 RPM 覆盖失败',
-        loadRpmStatus: '加载用户 RPM 状态失败',
-        saveConcurrency: '保存并发限制失败',
-        saveRpm: '保存 RPM 覆盖失败'
+        saveGroup: '保存分组限流失败',
+        saveUser: '保存用户覆盖失败'
       }
     },
 

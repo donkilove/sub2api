@@ -5449,71 +5449,43 @@ export default {
 
     limitCenter: {
       title: 'Limit Center',
-      description: 'Batch-manage user concurrency and RPM limits by group.',
+      description: 'Manage group defaults and per-user overrides for concurrency and RPM.',
       tabs: {
         group: 'By Group',
         user: 'By User'
       },
-      stats: {
-        groupDefaultRpm: 'Group RPM',
-        usersInGroup: 'Eligible users',
-        rpmOverrides: 'RPM overrides',
-        selectedUsers: 'Selected users'
-      },
-      groupPicker: 'Group',
-      groupRpm: 'Group RPM',
-      capacityConcurrency: 'Group concurrency',
-      capacityRpm: 'Group RPM usage',
-      searchUsers: 'Filter users',
-      searchPlaceholder: 'Search email, username, or notes',
-      emptyUsers: 'No matching users in this group',
+      searchGroups: 'Search group name or description',
+      searchUsers: 'Search email, username, or notes',
+      inheritPlaceholder: 'Inherit group',
+      emptyGroups: 'No matching groups',
+      emptyUsers: 'No matching users',
       columns: {
         user: 'User',
         group: 'Group',
-        concurrency: 'Concurrency',
-        userRpm: 'User global RPM',
-        groupRpm: 'Effective group RPM',
+        groupConcurrency: 'Group default concurrency',
+        groupRpm: 'Group default RPM',
+        userConcurrency: 'User override concurrency',
+        userRpm: 'User override RPM',
         status: 'Status',
         source: 'Source'
       },
       source: {
-        override: 'User override',
-        group: 'Group default',
+        concurrency: 'Concurrency: {source}',
+        rpm: 'RPM: {source}',
+        user: 'User override',
+        group: 'Inherit group',
+        unlimited: 'Unlimited',
         none: 'Not set'
       },
-      bulkPanel: {
-        title: 'Bulk Actions',
-        selected: 'Selected users',
-        concurrency: 'User global concurrency',
-        set: 'Set',
-        add: 'Add',
-        applyConcurrency: 'Apply concurrency',
-        rpmOverride: 'Group RPM override',
-        applyRpm: 'Set RPM',
-        clearRpm: 'Clear override',
-        clearSelection: 'Clear selection'
-      },
-      inspect: {
-        searchPlaceholder: 'Search user email or username',
-        results: 'Users',
-        empty: 'No matching users',
-        pickUser: 'Select a user to inspect effective limits',
-        userRpmUsed: 'Current global RPM',
-        used: 'Used',
-        noRpmGroups: 'No group RPM records for this user'
-      },
       messages: {
-        concurrencySaved: 'Updated concurrency for {count} users',
-        rpmSaved: 'RPM overrides saved',
-        rpmCleared: 'RPM overrides cleared for selected users'
+        groupSaved: 'Group limits saved',
+        userSaved: 'User overrides saved'
       },
       errors: {
         loadGroups: 'Failed to load groups',
         loadUsers: 'Failed to load users',
-        loadRpm: 'Failed to load RPM overrides',
-        loadRpmStatus: 'Failed to load user RPM status',
-        saveConcurrency: 'Failed to save concurrency limits',
-        saveRpm: 'Failed to save RPM overrides'
+        saveGroup: 'Failed to save group limits',
+        saveUser: 'Failed to save user overrides'
       }
     },
 

@@ -109,9 +109,17 @@ func (User) Fields() []ent.Field {
 			SchemaType(map[string]string{dialect.Postgres: "decimal(20,8)"}).
 			Default(0),
 
-		// 用户级每分钟请求数上限（0 = 不限制）。仅当所在分组未设置 rpm_limit 时作为兜底生效。
+		// 旧版用户级每分钟请求数上限（0 = 不限制），保留用于兼容旧接口与历史数据。
 		field.Int("rpm_limit").
 			Default(0),
+		field.Int("user_concurrency_override").
+			Optional().
+			Nillable().
+			Comment("用户独立并发覆盖：NULL 继承分组，0 不限流，>0 限制"),
+		field.Int("user_rpm_limit_override").
+			Optional().
+			Nillable().
+			Comment("用户独立 RPM 覆盖：NULL 继承分组，0 不限流，>0 限制"),
 	}
 }
 

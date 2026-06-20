@@ -49,6 +49,12 @@ type APIKeyAuthUserSnapshot struct {
 	// RPMLimit 用户级每分钟请求数上限（0 = 不限制）；用于 billing_cache_service.checkRPM 兜底判断。
 	RPMLimit int `json:"rpm_limit"`
 
+	// UserConcurrencyOverride 用户独立并发覆盖；nil = 继承分组默认，0 = 不限流，>0 = 用户全局上限。
+	UserConcurrencyOverride *int `json:"user_concurrency_override,omitempty"`
+
+	// UserRPMLimitOverride 用户独立 RPM 覆盖；nil = 继承分组默认，0 = 不限流，>0 = 用户全局上限。
+	UserRPMLimitOverride *int `json:"user_rpm_limit_override,omitempty"`
+
 	// UserGroupRPMOverride 该 API Key 对应的 (user, group) 专属 RPM 覆盖值。
 	// nil = 无 override（回退到 group/user 级）；0 = 不限流；>0 = 专属上限。
 	UserGroupRPMOverride *int `json:"user_group_rpm_override,omitempty"`
@@ -93,6 +99,9 @@ type APIKeyAuthGroupSnapshot struct {
 
 	// RPMLimit 分组级每分钟请求数上限（0 = 不限制）；用于 billing_cache_service.checkRPM 级联判断。
 	RPMLimit int `json:"rpm_limit"`
+
+	// UserConcurrencyLimit 使用该分组时的默认用户并发上限（0 = 不限制）。
+	UserConcurrencyLimit int `json:"user_concurrency_limit"`
 }
 
 // APIKeyAuthCacheEntry 缓存条目，支持负缓存

@@ -1,8 +1,11 @@
 package admin
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"math"
 	"strconv"
@@ -21,6 +24,44 @@ import (
 type UserWithConcurrency struct {
 	dto.AdminUser
 	CurrentConcurrency int `json:"current_concurrency"`
+}
+
+type nullableIntField struct {
+	set   bool
+	value *int
+}
+
+func (f *nullableIntField) UnmarshalJSON(data []byte) error {
+	f.set = true
+
+	trimmed := bytes.TrimSpace(data)
+	if bytes.Equal(trimmed, []byte("null")) {
+		f.value = nil
+		return nil
+	}
+
+	var number int
+	if err := json.Unmarshal(trimmed, &number); err == nil {
+		f.value = &number
+		return nil
+	}
+
+	var text string
+	if err := json.Unmarshal(trimmed, &text); err == nil {
+		text = strings.TrimSpace(text)
+		if text == "" {
+			f.value = nil
+			return nil
+		}
+		parsed, err := strconv.Atoi(text)
+		if err != nil {
+			return fmt.Errorf("invalid integer value %q: %w", text, err)
+		}
+		f.value = &parsed
+		return nil
+	}
+
+	return fmt.Errorf("invalid integer value: %s", string(trimmed))
 }
 
 // UserHandler handles admin user management
@@ -48,28 +89,32 @@ func NewUserHandler(
 
 // CreateUserRequest represents admin create user request
 type CreateUserRequest struct {
-	Email         string   `json:"email" binding:"required,email"`
-	Password      string   `json:"password" binding:"required,min=6"`
-	Username      string   `json:"username"`
-	Notes         string   `json:"notes"`
-	Balance       *float64 `json:"balance"`
-	Concurrency   int      `json:"concurrency"`
-	RPMLimit      int      `json:"rpm_limit"`
-	AllowedGroups []int64  `json:"allowed_groups"`
+	Email                   string   `json:"email" binding:"required,email"`
+	Password                string   `json:"password" binding:"required,min=6"`
+	Username                string   `json:"username"`
+	Notes                   string   `json:"notes"`
+	Balance                 *float64 `json:"balance"`
+	Concurrency             int      `json:"concurrency"`
+	RPMLimit                int      `json:"rpm_limit"`
+	UserConcurrencyOverride *int     `json:"user_concurrency_override"`
+	UserRPMLimitOverride    *int     `json:"user_rpm_limit_override"`
+	AllowedGroups           []int64  `json:"allowed_groups"`
 }
 
 // UpdateUserRequest represents admin update user request
 // 使用指针类型来区分"未提供"和"设置为0"
 type UpdateUserRequest struct {
-	Email         string   `json:"email" binding:"omitempty,email"`
-	Password      string   `json:"password" binding:"omitempty,min=6"`
-	Username      *string  `json:"username"`
-	Notes         *string  `json:"notes"`
-	Balance       *float64 `json:"balance"`
-	Concurrency   *int     `json:"concurrency"`
-	RPMLimit      *int     `json:"rpm_limit"`
-	Status        string   `json:"status" binding:"omitempty,oneof=active disabled"`
-	AllowedGroups *[]int64 `json:"allowed_groups"`
+	Email                   string           `json:"email" binding:"omitempty,email"`
+	Password                string           `json:"password" binding:"omitempty,min=6"`
+	Username                *string          `json:"username"`
+	Notes                   *string          `json:"notes"`
+	Balance                 *float64         `json:"balance"`
+	Concurrency             *int             `json:"concurrency"`
+	RPMLimit                *int             `json:"rpm_limit"`
+	UserConcurrencyOverride nullableIntField `json:"user_concurrency_override"`
+	UserRPMLimitOverride    nullableIntField `json:"user_rpm_limit_override"`
+	Status                  string           `json:"status" binding:"omitempty,oneof=active disabled"`
+	AllowedGroups           *[]int64         `json:"allowed_groups"`
 	// GroupRates 用户专属分组倍率配置
 	// map[groupID]*rate，nil 表示删除该分组的专属倍率
 	GroupRates map[int64]*float64 `json:"group_rates"`
@@ -270,14 +315,16 @@ func (h *UserHandler) Create(c *gin.Context) {
 	}
 
 	user, err := h.adminService.CreateUser(c.Request.Context(), &service.CreateUserInput{
-		Email:         req.Email,
-		Password:      req.Password,
-		Username:      req.Username,
-		Notes:         req.Notes,
-		Balance:       req.Balance,
-		Concurrency:   req.Concurrency,
-		RPMLimit:      req.RPMLimit,
-		AllowedGroups: req.AllowedGroups,
+		Email:                   req.Email,
+		Password:                req.Password,
+		Username:                req.Username,
+		Notes:                   req.Notes,
+		Balance:                 req.Balance,
+		Concurrency:             req.Concurrency,
+		RPMLimit:                req.RPMLimit,
+		UserConcurrencyOverride: req.UserConcurrencyOverride,
+		UserRPMLimitOverride:    req.UserRPMLimitOverride,
+		AllowedGroups:           req.AllowedGroups,
 	})
 	if err != nil {
 		response.ErrorFrom(c, err)
@@ -303,7 +350,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 	}
 
 	// 使用指针类型直接传递，nil 表示未提供该字段
-	user, err := h.adminService.UpdateUser(c.Request.Context(), userID, &service.UpdateUserInput{
+	input := &service.UpdateUserInput{
 		Email:         req.Email,
 		Password:      req.Password,
 		Username:      req.Username,
@@ -314,7 +361,22 @@ func (h *UserHandler) Update(c *gin.Context) {
 		Status:        req.Status,
 		AllowedGroups: req.AllowedGroups,
 		GroupRates:    req.GroupRates,
-	})
+	}
+	if req.UserConcurrencyOverride.set {
+		if req.UserConcurrencyOverride.value != nil {
+			input.UserConcurrencyOverride = req.UserConcurrencyOverride.value
+		} else {
+			input.ClearUserConcurrencyOverride = true
+		}
+	}
+	if req.UserRPMLimitOverride.set {
+		if req.UserRPMLimitOverride.value != nil {
+			input.UserRPMLimitOverride = req.UserRPMLimitOverride.value
+		} else {
+			input.ClearUserRPMLimitOverride = true
+		}
+	}
+	user, err := h.adminService.UpdateUser(c.Request.Context(), userID, input)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return

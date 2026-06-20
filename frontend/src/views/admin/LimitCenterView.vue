@@ -23,123 +23,7 @@
       </template>
 
       <template #filters>
-        <div v-if="activeTab === 'group'" class="space-y-3">
-          <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-            <div class="flex flex-1 flex-wrap items-center gap-3">
-              <div class="w-full sm:w-72">
-                <Select
-                  v-model="selectedGroupID"
-                  :options="groupOptions"
-                  searchable
-                  :placeholder="t('admin.limitCenter.groupPicker')"
-                  @change="handleGroupChange"
-                />
-              </div>
-
-              <div class="relative w-full sm:w-64">
-                <Icon
-                  name="search"
-                  size="md"
-                  class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-                <input
-                  v-model="userSearch"
-                  type="text"
-                  class="input pl-10"
-                  :placeholder="t('admin.limitCenter.searchPlaceholder')"
-                  @keyup.enter="loadGroupUsers"
-                />
-              </div>
-
-              <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-dark-400">
-                <span class="rounded-full bg-gray-100 px-2.5 py-1 dark:bg-dark-700">
-                  {{ t('admin.limitCenter.groupRpm') }}: {{ selectedGroup?.rpm_limit ?? 0 }}
-                </span>
-                <span class="rounded-full bg-gray-100 px-2.5 py-1 dark:bg-dark-700">
-                  {{ t('admin.limitCenter.stats.usersInGroup') }}: {{ usersPagination.total }}
-                </span>
-                <span class="rounded-full bg-gray-100 px-2.5 py-1 dark:bg-dark-700">
-                  {{ t('admin.limitCenter.stats.rpmOverrides') }}: {{ rpmLoading ? '-' : rpmEntries.length }}
-                </span>
-                <span v-if="selectedCapacity" class="rounded-full bg-gray-100 px-2.5 py-1 dark:bg-dark-700">
-                  {{ t('admin.limitCenter.capacityConcurrency') }}:
-                  {{ selectedCapacity.concurrency_used }}/{{ selectedCapacity.concurrency_max }}
-                </span>
-              </div>
-            </div>
-
-            <div class="flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-2 lg:w-auto">
-              <button
-                type="button"
-                class="btn btn-secondary px-2 md:px-3"
-                :title="t('common.refresh')"
-                :disabled="usersLoading || rpmLoading"
-                @click="refreshGroupView"
-              >
-                <Icon
-                  name="refresh"
-                  size="md"
-                  :class="usersLoading || rpmLoading ? 'animate-spin' : ''"
-                />
-              </button>
-              <button type="button" class="btn btn-secondary" @click="resetGroupUserSearch">
-                {{ t('common.reset') }}
-              </button>
-              <button type="button" class="btn btn-primary" :disabled="usersLoading" @click="loadGroupUsers">
-                <Icon name="search" size="sm" class="mr-2" />
-                {{ t('common.search') }}
-              </button>
-            </div>
-          </div>
-
-          <div
-            v-if="selectedUserIDs.length > 0"
-            class="flex flex-col gap-3 rounded-xl border border-primary-200 bg-primary-50/80 p-3 dark:border-primary-800/60 dark:bg-primary-900/20 lg:flex-row lg:items-center lg:justify-between"
-          >
-            <div class="text-sm text-primary-800 dark:text-primary-200">
-              {{ t('admin.limitCenter.bulkPanel.selected') }}:
-              <span class="font-semibold">{{ selectedUserIDs.length }}</span>
-            </div>
-            <div class="flex flex-1 flex-wrap items-center justify-end gap-2">
-              <Select
-                v-model="concurrencyMode"
-                :options="concurrencyModeOptions"
-                class="w-28"
-              />
-              <input v-model.number="concurrencyValue" type="number" min="1" step="1" class="input w-28" />
-              <button
-                type="button"
-                class="btn btn-primary"
-                :disabled="bulkSaving || concurrencyValue < 1"
-                @click="applyConcurrency"
-              >
-                {{ t('admin.limitCenter.bulkPanel.applyConcurrency') }}
-              </button>
-              <input v-model.number="rpmOverrideValue" type="number" min="0" step="1" class="input w-32" />
-              <button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="bulkSaving || rpmOverrideValue < 0"
-                @click="applyRPMOverride"
-              >
-                {{ t('admin.limitCenter.bulkPanel.applyRpm') }}
-              </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                :disabled="bulkSaving"
-                @click="clearSelectedRPMOverride"
-              >
-                {{ t('admin.limitCenter.bulkPanel.clearRpm') }}
-              </button>
-              <button type="button" class="btn btn-secondary px-2 md:px-3" @click="clearSelection">
-                <Icon name="x" size="sm" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+        <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <div class="relative w-full lg:max-w-md">
             <Icon
               name="search"
@@ -147,28 +31,30 @@
               class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
             <input
-              v-model="inspectUserSearch"
+              v-model="search"
               type="text"
               class="input pl-10"
-              :placeholder="t('admin.limitCenter.inspect.searchPlaceholder')"
-              @keyup.enter="searchInspectUsers"
+              :placeholder="activeTab === 'group'
+                ? t('admin.limitCenter.searchGroups')
+                : t('admin.limitCenter.searchUsers')"
+              @keyup.enter="reloadFromFirstPage"
             />
           </div>
-          <div class="flex w-full flex-shrink-0 justify-end gap-2 lg:w-auto">
+
+          <div class="flex w-full flex-shrink-0 flex-wrap justify-end gap-2 lg:w-auto">
             <button
               type="button"
-              class="btn btn-secondary"
-              :disabled="inspectLoading"
-              @click="clearInspectSearch"
+              class="btn btn-secondary px-2 md:px-3"
+              :title="t('common.refresh')"
+              :disabled="activeLoading"
+              @click="reloadCurrent"
             >
+              <Icon name="refresh" size="md" :class="activeLoading ? 'animate-spin' : ''" />
+            </button>
+            <button type="button" class="btn btn-secondary" :disabled="activeLoading" @click="resetSearch">
               {{ t('common.reset') }}
             </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              :disabled="inspectLoading"
-              @click="searchInspectUsers"
-            >
+            <button type="button" class="btn btn-primary" :disabled="activeLoading" @click="reloadFromFirstPage">
               <Icon name="search" size="sm" class="mr-2" />
               {{ t('common.search') }}
             </button>
@@ -179,32 +65,78 @@
       <template #table>
         <DataTable
           v-if="activeTab === 'group'"
-          :columns="groupUserColumns"
-          :data="groupUsers"
+          :columns="groupColumns"
+          :data="groups"
+          :loading="groupsLoading"
+          row-key="id"
+          :sticky-actions-column="false"
+          :estimate-row-height="72"
+        >
+          <template #cell-group="{ row }">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-gray-900 dark:text-white">{{ row.name }}</span>
+                <span class="text-xs text-gray-400">#{{ row.id }}</span>
+              </div>
+              <div class="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-dark-400">
+                <span>{{ t(`admin.groups.platforms.${row.platform}`) }}</span>
+                <span>·</span>
+                <span>{{ row.description || '-' }}</span>
+              </div>
+            </div>
+          </template>
+
+          <template #cell-concurrency="{ row }">
+            <LimitNumberInput
+              :model-value="groupDraft(row.id).user_concurrency_limit"
+              @update:model-value="value => groupDraft(row.id).user_concurrency_limit = value"
+            />
+          </template>
+
+          <template #cell-rpm="{ row }">
+            <LimitNumberInput
+              :model-value="groupDraft(row.id).rpm_limit"
+              @update:model-value="value => groupDraft(row.id).rpm_limit = value"
+            />
+          </template>
+
+          <template #cell-status="{ row }">
+            <span :class="statusBadgeClass(row.status)">
+              {{ row.status === 'active' ? t('common.active') : t('common.inactive') }}
+            </span>
+          </template>
+
+          <template #cell-actions="{ row }">
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              :disabled="savingGroupID === row.id || !groupDirty(row)"
+              @click="saveGroup(row)"
+            >
+              <Icon
+                :name="savingGroupID === row.id ? 'refresh' : 'check'"
+                size="sm"
+                class="mr-1"
+                :class="savingGroupID === row.id ? 'animate-spin' : ''"
+              />
+              {{ t('common.save') }}
+            </button>
+          </template>
+
+          <template #empty>
+            <EmptyState :message="t('admin.limitCenter.emptyGroups')" />
+          </template>
+        </DataTable>
+
+        <DataTable
+          v-else
+          :columns="userColumns"
+          :data="users"
           :loading="usersLoading"
           row-key="id"
           :sticky-actions-column="false"
-          :estimate-row-height="64"
+          :estimate-row-height="72"
         >
-          <template #header-select>
-            <input
-              ref="pageSelectCheckboxRef"
-              type="checkbox"
-              class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              :checked="pageAllSelected"
-              @change="togglePageSelection(($event.target as HTMLInputElement).checked)"
-            />
-          </template>
-
-          <template #cell-select="{ row }">
-            <input
-              type="checkbox"
-              class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              :checked="selectedUserIDSet.has(row.id)"
-              @change="toggleUserSelection(row, ($event.target as HTMLInputElement).checked)"
-            />
-          </template>
-
           <template #cell-user="{ row }">
             <div class="min-w-0">
               <div class="flex items-center gap-2">
@@ -212,27 +144,33 @@
                 <span class="text-xs text-gray-400">#{{ row.id }}</span>
               </div>
               <div class="mt-0.5 text-xs text-gray-500 dark:text-dark-400">
-                {{ row.username || '-' }}
+                {{ row.username || row.notes || '-' }}
               </div>
             </div>
           </template>
 
           <template #cell-concurrency="{ row }">
-            <span class="font-mono text-gray-900 dark:text-white">
-              {{ row.current_concurrency ?? 0 }}/{{ row.concurrency }}
-            </span>
+            <OverrideNumberInput
+              :model-value="userDraft(row.id).user_concurrency_override"
+              @update:model-value="value => userDraft(row.id).user_concurrency_override = value"
+            />
           </template>
 
-          <template #cell-userRpm="{ row }">
-            <span class="font-mono text-gray-700 dark:text-gray-300">{{ row.rpm_limit ?? 0 }}</span>
+          <template #cell-rpm="{ row }">
+            <OverrideNumberInput
+              :model-value="userDraft(row.id).user_rpm_limit_override"
+              @update:model-value="value => userDraft(row.id).user_rpm_limit_override = value"
+            />
           </template>
 
-          <template #cell-groupRpm="{ row }">
-            <div class="space-y-0.5">
-              <span class="font-mono text-gray-900 dark:text-white">{{ effectiveGroupRPM(row.id) }}</span>
-              <div class="text-xs text-gray-500 dark:text-dark-400">
-                {{ groupRPMSourceLabel(row.id) }}
-              </div>
+          <template #cell-source="{ row }">
+            <div class="flex flex-wrap gap-1.5">
+              <span :class="sourceBadgeClass(row.user_concurrency_override)">
+                {{ t('admin.limitCenter.source.concurrency', { source: sourceLabel(row.user_concurrency_override) }) }}
+              </span>
+              <span :class="sourceBadgeClass(row.user_rpm_limit_override)">
+                {{ t('admin.limitCenter.source.rpm', { source: sourceLabel(row.user_rpm_limit_override) }) }}
+              </span>
             </div>
           </template>
 
@@ -242,108 +180,36 @@
             </span>
           </template>
 
-          <template #empty>
-            <div class="flex flex-col items-center">
-              <Icon name="inbox" size="xl" class="mb-4 h-12 w-12 text-gray-400 dark:text-dark-500" />
-              <p class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                {{ t('admin.limitCenter.emptyUsers') }}
-              </p>
-            </div>
-          </template>
-        </DataTable>
-
-        <DataTable
-          v-else
-          :columns="inspectColumns"
-          :data="inspectRows"
-          :loading="inspectLoading || rpmStatusLoading"
-          row-key="rowKey"
-          :sticky-actions-column="false"
-          :estimate-row-height="64"
-        >
-          <template #cell-user="{ row }">
-            <button
-              v-if="row.kind === 'user'"
-              type="button"
-              class="text-left"
-              @click="selectInspectUser(row.user)"
-            >
-              <span class="block font-medium text-gray-900 hover:text-primary-600 dark:text-white dark:hover:text-primary-400">
-                {{ row.user.email }}
-              </span>
-              <span class="mt-0.5 block text-xs text-gray-500 dark:text-dark-400">
-                #{{ row.user.id }} · {{ row.user.username || '-' }}
-              </span>
-            </button>
-            <div v-else-if="inspectedUser">
-              <span class="block font-medium text-gray-900 dark:text-white">{{ inspectedUser.email }}</span>
-              <span class="mt-0.5 block text-xs text-gray-500 dark:text-dark-400">
-                {{ row.groupName || `#${row.groupID}` }}
-              </span>
-            </div>
-          </template>
-
-          <template #cell-concurrency="{ row }">
-            <span v-if="row.kind === 'user'" class="font-mono">
-              {{ row.user.current_concurrency ?? 0 }}/{{ row.user.concurrency }}
-            </span>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-
-          <template #cell-userRpm="{ row }">
-            <span v-if="row.kind === 'user'" class="font-mono">
-              {{ row.user.rpm_limit ?? 0 }}
-            </span>
-            <span v-else class="font-mono">
-              {{ rpmStatus?.user_rpm_used ?? 0 }}/{{ rpmStatus?.user_rpm_limit ?? 0 }}
-            </span>
-          </template>
-
-          <template #cell-groupRpm="{ row }">
-            <span v-if="row.kind === 'group'" class="font-mono">{{ row.limit }}</span>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-
-          <template #cell-source="{ row }">
-            <span v-if="row.kind === 'group'">{{ rpmSourceText(row.source) }}</span>
-            <span v-else-if="inspectedUser?.id === row.user.id" class="badge badge-primary">
-              {{ t('admin.limitCenter.inspect.results') }}
-            </span>
-            <span v-else class="text-gray-400">-</span>
-          </template>
-
           <template #cell-actions="{ row }">
             <button
-              v-if="row.kind === 'user'"
               type="button"
-              class="btn btn-secondary btn-sm"
-              @click="selectInspectUser(row.user)"
+              class="btn btn-primary btn-sm"
+              :disabled="savingUserID === row.id || !userDirty(row)"
+              @click="saveUser(row)"
             >
-              {{ t('admin.limitCenter.inspect.pickUser') }}
+              <Icon
+                :name="savingUserID === row.id ? 'refresh' : 'check'"
+                size="sm"
+                class="mr-1"
+                :class="savingUserID === row.id ? 'animate-spin' : ''"
+              />
+              {{ t('common.save') }}
             </button>
-            <span v-else class="text-xs text-gray-500 dark:text-dark-400">
-              {{ row.used }} / {{ row.limit }}
-            </span>
           </template>
 
           <template #empty>
-            <div class="flex flex-col items-center">
-              <Icon name="inbox" size="xl" class="mb-4 h-12 w-12 text-gray-400 dark:text-dark-500" />
-              <p class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                {{ inspectUserSearch.trim() ? t('admin.limitCenter.inspect.empty') : t('admin.limitCenter.inspect.pickUser') }}
-              </p>
-            </div>
+            <EmptyState :message="t('admin.limitCenter.emptyUsers')" />
           </template>
         </DataTable>
       </template>
 
-      <template v-if="activeTab === 'group'" #pagination>
+      <template #pagination>
         <Pagination
-          :total="usersPagination.total"
-          :page="usersPagination.page"
-          :page-size="usersPagination.pageSize"
-          @update:page="handleUserPageChange"
-          @update:pageSize="handleUserPageSizeChange"
+          :total="activePagination.total"
+          :page="activePagination.page"
+          :page-size="activePagination.pageSize"
+          @update:page="handlePageChange"
+          @update:pageSize="handlePageSizeChange"
         />
       </template>
     </TablePageLayout>
@@ -351,135 +217,123 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, defineComponent, h, onMounted, reactive, ref, watch, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { adminAPI } from '@/api/admin'
-import type { GroupRPMOverrideEntry } from '@/api/admin/groups'
-import type { UserRPMStatus } from '@/api/admin/users'
 import type { AdminGroup, AdminUser } from '@/types'
 import { useAppStore } from '@/stores/app'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import TablePageLayout from '@/components/layout/TablePageLayout.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import Pagination from '@/components/common/Pagination.vue'
-import Select from '@/components/common/Select.vue'
 import Icon from '@/components/icons/Icon.vue'
 import type { Column } from '@/components/common/types'
 
-interface CapacityRow {
-  group_id: number
-  concurrency_used: number
-  concurrency_max: number
-  sessions_used: number
-  sessions_max: number
-  rpm_used: number
-  rpm_max: number
+type ActiveTab = 'group' | 'user'
+type NullableLimit = number | null
+
+interface GroupDraft {
+  user_concurrency_limit: number
+  rpm_limit: number
 }
 
-type ActiveTab = 'group' | 'user'
-type ConcurrencyMode = 'set' | 'add'
-
-type InspectRow =
-  | { rowKey: string; kind: 'user'; user: AdminUser }
-  | {
-      rowKey: string
-      kind: 'group'
-      groupID: number
-      groupName?: string
-      used: number
-      limit: number
-      source: string
-    }
+interface UserDraft {
+  user_concurrency_override: NullableLimit
+  user_rpm_limit_override: NullableLimit
+}
 
 const { t } = useI18n()
 const appStore = useAppStore()
 
 const activeTab = ref<ActiveTab>('group')
+const search = ref('')
 const groups = ref<AdminGroup[]>([])
-const capacities = ref<CapacityRow[]>([])
-const selectedGroupID = ref<number | null>(null)
-const groupUsers = ref<AdminUser[]>([])
+const users = ref<AdminUser[]>([])
+const groupsLoading = ref(false)
 const usersLoading = ref(false)
-const rpmLoading = ref(false)
-const bulkSaving = ref(false)
-const userSearch = ref('')
-const selectedUsers = ref<Map<number, AdminUser>>(new Map())
-const rpmEntries = ref<GroupRPMOverrideEntry[]>([])
+const savingGroupID = ref<number | null>(null)
+const savingUserID = ref<number | null>(null)
+const groupDrafts = reactive<Record<number, GroupDraft>>({})
+const userDrafts = reactive<Record<number, UserDraft>>({})
 
-const usersPagination = ref({ page: 1, pageSize: 20, total: 0 })
-const concurrencyMode = ref<ConcurrencyMode>('set')
-const concurrencyValue = ref(1)
-const rpmOverrideValue = ref(0)
+const groupPagination = reactive({ page: 1, pageSize: 20, total: 0 })
+const userPagination = reactive({ page: 1, pageSize: 20, total: 0 })
 
-const inspectUserSearch = ref('')
-const inspectUsers = ref<AdminUser[]>([])
-const inspectedUser = ref<AdminUser | null>(null)
-const inspectLoading = ref(false)
-const rpmStatus = ref<UserRPMStatus | null>(null)
-const rpmStatusLoading = ref(false)
-const pageSelectCheckboxRef = ref<HTMLInputElement | null>(null)
-
-const groupUserColumns = computed<Column[]>(() => [
-  { key: 'select', label: '', class: 'w-12' },
-  { key: 'user', label: t('admin.limitCenter.columns.user'), sortable: true },
-  { key: 'concurrency', label: t('admin.limitCenter.columns.concurrency') },
-  { key: 'userRpm', label: t('admin.limitCenter.columns.userRpm') },
-  { key: 'groupRpm', label: t('admin.limitCenter.columns.groupRpm') },
-  { key: 'status', label: t('admin.limitCenter.columns.status') }
+const groupColumns = computed<Column[]>(() => [
+  { key: 'group', label: t('admin.limitCenter.columns.group') },
+  { key: 'concurrency', label: t('admin.limitCenter.columns.groupConcurrency') },
+  { key: 'rpm', label: t('admin.limitCenter.columns.groupRpm') },
+  { key: 'status', label: t('admin.limitCenter.columns.status') },
+  { key: 'actions', label: t('common.actions') }
 ])
 
-const inspectColumns = computed<Column[]>(() => [
+const userColumns = computed<Column[]>(() => [
   { key: 'user', label: t('admin.limitCenter.columns.user') },
-  { key: 'concurrency', label: t('admin.limitCenter.columns.concurrency') },
-  { key: 'userRpm', label: t('admin.limitCenter.columns.userRpm') },
-  { key: 'groupRpm', label: t('admin.limitCenter.columns.groupRpm') },
+  { key: 'concurrency', label: t('admin.limitCenter.columns.userConcurrency') },
+  { key: 'rpm', label: t('admin.limitCenter.columns.userRpm') },
   { key: 'source', label: t('admin.limitCenter.columns.source') },
-  { key: 'actions', label: t('admin.limitCenter.columns.status') }
+  { key: 'status', label: t('admin.limitCenter.columns.status') },
+  { key: 'actions', label: t('common.actions') }
 ])
 
-const concurrencyModeOptions = computed(() => [
-  { value: 'set', label: t('admin.limitCenter.bulkPanel.set') },
-  { value: 'add', label: t('admin.limitCenter.bulkPanel.add') }
-])
+const activeLoading = computed(() => activeTab.value === 'group' ? groupsLoading.value : usersLoading.value)
+const activePagination = computed(() => activeTab.value === 'group' ? groupPagination : userPagination)
 
-const groupOptions = computed(() => groups.value.map(group => ({
-  value: group.id,
-  label: `${group.name} · ${t('admin.groups.platforms.' + group.platform)}`
-})))
+const clampLimit = (value: number) => {
+  if (!Number.isFinite(value) || value < 0) return 0
+  return Math.floor(value)
+}
 
-const selectedGroup = computed(() => groups.value.find(group => group.id === selectedGroupID.value) || null)
-const selectedCapacity = computed(() => capacities.value.find(row => row.group_id === selectedGroupID.value) || null)
-const selectedUserIDs = computed(() => Array.from(selectedUsers.value.keys()))
-const selectedUserIDSet = computed(() => new Set(selectedUserIDs.value))
-const pageAllSelected = computed(() => groupUsers.value.length > 0 && groupUsers.value.every(user => selectedUserIDSet.value.has(user.id)))
-const pagePartiallySelected = computed(() => groupUsers.value.some(user => selectedUserIDSet.value.has(user.id)) && !pageAllSelected.value)
+const parseNullableLimit = (value: unknown): NullableLimit => {
+  if (value === null || value === undefined || value === '') return null
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue) || numberValue < 0) return null
+  return Math.floor(numberValue)
+}
 
-const inspectRows = computed<InspectRow[]>(() => {
-  if (inspectedUser.value && rpmStatus.value?.per_group?.length) {
-    return rpmStatus.value.per_group.map(row => ({
-      rowKey: `group-${row.group_id}`,
-      kind: 'group',
-      groupID: row.group_id,
-      groupName: row.group_name,
-      used: row.used,
-      limit: row.limit,
-      source: row.source
-    }))
+const limitEquals = (a: NullableLimit | undefined, b: NullableLimit | undefined) => {
+  return (a ?? null) === (b ?? null)
+}
+
+const syncGroupDraft = (group: AdminGroup) => {
+  groupDrafts[group.id] = {
+    user_concurrency_limit: clampLimit(group.user_concurrency_limit ?? 0),
+    rpm_limit: clampLimit(group.rpm_limit ?? 0)
   }
-  return inspectUsers.value.map(user => ({
-    rowKey: `user-${user.id}`,
-    kind: 'user',
-    user
-  }))
-})
+}
 
-const rpmMap = computed(() => {
-  const map = new Map<number, number>()
-  for (const entry of rpmEntries.value) {
-    map.set(entry.user_id, entry.rpm_override)
+const syncUserDraft = (user: AdminUser) => {
+  userDrafts[user.id] = {
+    user_concurrency_override: parseNullableLimit(user.user_concurrency_override),
+    user_rpm_limit_override: parseNullableLimit(user.user_rpm_limit_override)
   }
-  return map
-})
+}
+
+const groupDraft = (id: number) => {
+  if (!groupDrafts[id]) {
+    groupDrafts[id] = { user_concurrency_limit: 0, rpm_limit: 0 }
+  }
+  return groupDrafts[id]
+}
+
+const userDraft = (id: number) => {
+  if (!userDrafts[id]) {
+    userDrafts[id] = { user_concurrency_override: null, user_rpm_limit_override: null }
+  }
+  return userDrafts[id]
+}
+
+const groupDirty = (group: AdminGroup) => {
+  const draft = groupDraft(group.id)
+  return draft.user_concurrency_limit !== clampLimit(group.user_concurrency_limit ?? 0) ||
+    draft.rpm_limit !== clampLimit(group.rpm_limit ?? 0)
+}
+
+const userDirty = (user: AdminUser) => {
+  const draft = userDraft(user.id)
+  return !limitEquals(draft.user_concurrency_override, parseNullableLimit(user.user_concurrency_override)) ||
+    !limitEquals(draft.user_rpm_limit_override, parseNullableLimit(user.user_rpm_limit_override))
+}
 
 const statusBadgeClass = (status: string) => [
   'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
@@ -488,52 +342,64 @@ const statusBadgeClass = (status: string) => [
     : 'bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-gray-400'
 ]
 
+const sourceBadgeClass = (value: NullableLimit | undefined) => [
+  'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
+  value === null || value === undefined
+    ? 'bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-gray-400'
+    : 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+]
+
+const sourceLabel = (value: NullableLimit | undefined) => {
+  if (value === null || value === undefined) return t('admin.limitCenter.source.group')
+  if (value === 0) return t('admin.limitCenter.source.unlimited')
+  return t('admin.limitCenter.source.user')
+}
+
 const loadGroups = async () => {
+  groupsLoading.value = true
   try {
-    const [groupList, capacityList] = await Promise.all([
-      adminAPI.groups.getAllIncludingInactive(),
-      adminAPI.groups.getCapacitySummary()
-    ])
-    groups.value = groupList
-    capacities.value = capacityList
-    if (!selectedGroupID.value && groupList.length > 0) {
-      selectedGroupID.value = groupList[0].id
-    }
-  } catch (error: any) {
-    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.loadGroups'))
-  }
-}
-
-const loadRPMEntries = async () => {
-  if (!selectedGroupID.value) return
-  rpmLoading.value = true
-  try {
-    rpmEntries.value = await adminAPI.groups.getGroupRPMOverrides(selectedGroupID.value)
-  } catch (error: any) {
-    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.loadRpm'))
-  } finally {
-    rpmLoading.value = false
-  }
-}
-
-const loadGroupUsers = async () => {
-  if (!selectedGroupID.value) return
-  usersLoading.value = true
-  try {
-    const result = await adminAPI.users.list(
-      usersPagination.value.page,
-      usersPagination.value.pageSize,
+    const result = await adminAPI.groups.list(
+      groupPagination.page,
+      groupPagination.pageSize,
       {
-        allowed_group_id: selectedGroupID.value,
-        search: userSearch.value.trim() || undefined,
+        search: search.value.trim() || undefined,
         sort_by: 'id',
         sort_order: 'asc'
       }
     )
-    groupUsers.value = result.items
-    usersPagination.value.total = result.total
-    usersPagination.value.page = result.page
-    usersPagination.value.pageSize = result.page_size
+    groups.value = result.items
+    groupPagination.total = result.total
+    groupPagination.page = result.page
+    groupPagination.pageSize = result.page_size
+    for (const group of result.items) {
+      syncGroupDraft(group)
+    }
+  } catch (error: any) {
+    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.loadGroups'))
+  } finally {
+    groupsLoading.value = false
+  }
+}
+
+const loadUsers = async () => {
+  usersLoading.value = true
+  try {
+    const result = await adminAPI.users.list(
+      userPagination.page,
+      userPagination.pageSize,
+      {
+        search: search.value.trim() || undefined,
+        sort_by: 'id',
+        sort_order: 'asc'
+      }
+    )
+    users.value = result.items
+    userPagination.total = result.total
+    userPagination.page = result.page
+    userPagination.pageSize = result.page_size
+    for (const user of result.items) {
+      syncUserDraft(user)
+    }
   } catch (error: any) {
     appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.loadUsers'))
   } finally {
@@ -541,213 +407,154 @@ const loadGroupUsers = async () => {
   }
 }
 
-const handleGroupChange = async () => {
-  usersPagination.value.page = 1
-  selectedUsers.value = new Map()
-  await Promise.all([loadRPMEntries(), loadGroupUsers()])
-}
-
-const refreshGroupView = async () => {
-  await Promise.all([loadGroups(), loadRPMEntries(), loadGroupUsers()])
-}
-
-const resetGroupUserSearch = () => {
-  userSearch.value = ''
-  usersPagination.value.page = 1
-  loadGroupUsers()
-}
-
-const handleUserPageChange = (page: number) => {
-  usersPagination.value.page = page
-  loadGroupUsers()
-}
-
-const handleUserPageSizeChange = (pageSize: number) => {
-  usersPagination.value.pageSize = pageSize
-  usersPagination.value.page = 1
-  loadGroupUsers()
-}
-
-const toggleUserSelection = (user: AdminUser, checked: boolean) => {
-  const next = new Map(selectedUsers.value)
-  if (checked) {
-    next.set(user.id, user)
-  } else {
-    next.delete(user.id)
+const reloadCurrent = () => {
+  if (activeTab.value === 'group') {
+    void loadGroups()
+    return
   }
-  selectedUsers.value = next
+  void loadUsers()
 }
 
-const togglePageSelection = (checked: boolean) => {
-  const next = new Map(selectedUsers.value)
-  for (const user of groupUsers.value) {
-    if (checked) {
-      next.set(user.id, user)
-    } else {
-      next.delete(user.id)
-    }
-  }
-  selectedUsers.value = next
+const reloadFromFirstPage = () => {
+  activePagination.value.page = 1
+  reloadCurrent()
 }
 
-const clearSelection = () => {
-  selectedUsers.value = new Map()
+const resetSearch = () => {
+  search.value = ''
+  reloadFromFirstPage()
 }
 
-const effectiveGroupRPM = (userID: number) => {
-  if (rpmMap.value.has(userID)) return rpmMap.value.get(userID) ?? 0
-  return selectedGroup.value?.rpm_limit ?? 0
+const handlePageChange = (page: number) => {
+  activePagination.value.page = page
+  reloadCurrent()
 }
 
-const groupRPMSourceLabel = (userID: number) => {
-  return rpmMap.value.has(userID)
-    ? t('admin.limitCenter.source.override')
-    : t('admin.limitCenter.source.group')
+const handlePageSizeChange = (pageSize: number) => {
+  activePagination.value.pageSize = pageSize
+  activePagination.value.page = 1
+  reloadCurrent()
 }
 
-const rpmSourceText = (source: string) => {
-  if (source === 'override') return t('admin.limitCenter.source.override')
-  if (source === 'group') return t('admin.limitCenter.source.group')
-  return t('admin.limitCenter.source.none')
-}
-
-const buildMergedRPMEntries = (updates: Map<number, number | null>) => {
-  const userInfo = new Map<number, AdminUser>()
-  for (const user of selectedUsers.value.values()) {
-    userInfo.set(user.id, user)
-  }
-
-  const merged = new Map<number, GroupRPMOverrideEntry>()
-  for (const entry of rpmEntries.value) {
-    merged.set(entry.user_id, { ...entry })
-  }
-  for (const [userID, value] of updates) {
-    if (value == null) {
-      merged.delete(userID)
-      continue
-    }
-    const user = userInfo.get(userID)
-    const existing = merged.get(userID)
-    merged.set(userID, {
-      user_id: userID,
-      user_name: user?.username || existing?.user_name || '',
-      user_email: user?.email || existing?.user_email || '',
-      user_notes: user?.notes || existing?.user_notes || '',
-      user_status: user?.status || existing?.user_status || 'active',
-      rpm_override: value
+const saveGroup = async (group: AdminGroup) => {
+  const draft = groupDraft(group.id)
+  savingGroupID.value = group.id
+  try {
+    const updated = await adminAPI.groups.update(group.id, {
+      user_concurrency_limit: clampLimit(draft.user_concurrency_limit),
+      rpm_limit: clampLimit(draft.rpm_limit)
     })
+    const index = groups.value.findIndex(item => item.id === group.id)
+    if (index >= 0) {
+      groups.value[index] = updated
+    }
+    syncGroupDraft(updated)
+    appStore.showSuccess(t('admin.limitCenter.messages.groupSaved'))
+  } catch (error: any) {
+    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.saveGroup'))
+  } finally {
+    savingGroupID.value = null
   }
-  return Array.from(merged.values()).sort((a, b) => a.user_id - b.user_id)
 }
 
-const saveRPMEntries = async (entries: GroupRPMOverrideEntry[]) => {
-  if (!selectedGroupID.value) return
-  await adminAPI.groups.batchSetGroupRPMOverrides(
-    selectedGroupID.value,
-    entries.map(entry => ({ user_id: entry.user_id, rpm_override: entry.rpm_override }))
-  )
-  rpmEntries.value = entries
-}
-
-const applyConcurrency = async () => {
-  if (selectedUserIDs.value.length === 0 || concurrencyValue.value < 1) return
-  bulkSaving.value = true
+const saveUser = async (user: AdminUser) => {
+  const draft = userDraft(user.id)
+  savingUserID.value = user.id
   try {
-    const result = await adminAPI.users.batchUpdateConcurrency({
-      user_ids: selectedUserIDs.value,
-      concurrency: concurrencyValue.value,
-      mode: concurrencyMode.value
+    const updated = await adminAPI.users.update(user.id, {
+      user_concurrency_override: draft.user_concurrency_override,
+      user_rpm_limit_override: draft.user_rpm_limit_override
     })
-    appStore.showSuccess(t('admin.limitCenter.messages.concurrencySaved', { count: result.affected }))
-    await loadGroupUsers()
+    const index = users.value.findIndex(item => item.id === user.id)
+    if (index >= 0) {
+      users.value[index] = updated
+    }
+    syncUserDraft(updated)
+    appStore.showSuccess(t('admin.limitCenter.messages.userSaved'))
   } catch (error: any) {
-    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.saveConcurrency'))
+    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.saveUser'))
   } finally {
-    bulkSaving.value = false
+    savingUserID.value = null
   }
 }
 
-const applyRPMOverride = async () => {
-  if (selectedUserIDs.value.length === 0 || rpmOverrideValue.value < 0) return
-  bulkSaving.value = true
-  try {
-    const updates = new Map<number, number | null>()
-    for (const userID of selectedUserIDs.value) updates.set(userID, rpmOverrideValue.value)
-    const merged = buildMergedRPMEntries(updates)
-    await saveRPMEntries(merged)
-    appStore.showSuccess(t('admin.limitCenter.messages.rpmSaved'))
-  } catch (error: any) {
-    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.saveRpm'))
-  } finally {
-    bulkSaving.value = false
-  }
-}
+watch(activeTab, () => {
+  search.value = ''
+  reloadCurrent()
+})
 
-const clearSelectedRPMOverride = async () => {
-  if (selectedUserIDs.value.length === 0) return
-  bulkSaving.value = true
-  try {
-    const updates = new Map<number, number | null>()
-    for (const userID of selectedUserIDs.value) updates.set(userID, null)
-    const merged = buildMergedRPMEntries(updates)
-    await saveRPMEntries(merged)
-    appStore.showSuccess(t('admin.limitCenter.messages.rpmCleared'))
-  } catch (error: any) {
-    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.saveRpm'))
-  } finally {
-    bulkSaving.value = false
-  }
-}
+onMounted(() => {
+  void loadGroups()
+})
 
-const searchInspectUsers = async () => {
-  const query = inspectUserSearch.value.trim()
-  if (!query) return
-  inspectLoading.value = true
-  inspectedUser.value = null
-  rpmStatus.value = null
-  try {
-    const result = await adminAPI.users.list(1, 20, { search: query, sort_by: 'id', sort_order: 'asc' })
-    inspectUsers.value = result.items
-  } catch (error: any) {
-    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.loadUsers'))
-  } finally {
-    inspectLoading.value = false
-  }
-}
+const numberInputClasses = 'hide-spinner input w-28 font-mono text-sm'
 
-const clearInspectSearch = () => {
-  inspectUserSearch.value = ''
-  inspectUsers.value = []
-  inspectedUser.value = null
-  rpmStatus.value = null
-}
-
-const selectInspectUser = async (user: AdminUser) => {
-  inspectedUser.value = user
-  rpmStatus.value = null
-  rpmStatusLoading.value = true
-  try {
-    rpmStatus.value = await adminAPI.users.getRPMStatus(user.id)
-  } catch (error: any) {
-    appStore.showError(error?.response?.data?.detail || t('admin.limitCenter.errors.loadRpmStatus'))
-  } finally {
-    rpmStatusLoading.value = false
-  }
-}
-
-watch(selectedGroupID, (next, prev) => {
-  if (next && next !== prev) {
-    void handleGroupChange()
+const LimitNumberInput = defineComponent({
+  name: 'LimitNumberInput',
+  props: {
+    modelValue: {
+      type: Number,
+      required: true
+    }
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    return () => h('input', {
+      class: numberInputClasses,
+      type: 'number',
+      min: 0,
+      step: 1,
+      value: props.modelValue,
+      onInput: (event: Event) => {
+        const target = event.target as HTMLInputElement
+        emit('update:modelValue', clampLimit(Number(target.value)))
+      }
+    })
   }
 })
 
-watch([pagePartiallySelected, pageAllSelected], ([partiallySelected]) => {
-  if (pageSelectCheckboxRef.value) {
-    pageSelectCheckboxRef.value.indeterminate = partiallySelected
+const OverrideNumberInput = defineComponent({
+  name: 'OverrideNumberInput',
+  props: {
+    modelValue: {
+      type: Number as PropType<NullableLimit>,
+      default: null
+    }
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    return () => h('input', {
+      class: numberInputClasses,
+      type: 'number',
+      min: 0,
+      step: 1,
+      placeholder: t('admin.limitCenter.inheritPlaceholder'),
+      value: props.modelValue ?? '',
+      onInput: (event: Event) => {
+        const target = event.target as HTMLInputElement
+        emit('update:modelValue', parseNullableLimit(target.value))
+      }
+    })
   }
-}, { immediate: true })
+})
 
-onMounted(async () => {
-  await loadGroups()
+const EmptyState = defineComponent({
+  name: 'LimitCenterEmptyState',
+  props: {
+    message: {
+      type: String,
+      required: true
+    }
+  },
+  setup(props) {
+    return () => h('div', { class: 'flex flex-col items-center' }, [
+      h(Icon, {
+        name: 'inbox',
+        size: 'xl',
+        class: 'mb-4 h-12 w-12 text-gray-400 dark:text-dark-500'
+      }),
+      h('p', { class: 'text-lg font-medium text-gray-900 dark:text-gray-100' }, props.message)
+    ])
+  }
 })
 </script>
