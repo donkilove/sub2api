@@ -287,6 +287,7 @@ onMounted(async () => {
     pendingAuthTokenField.value = activePendingSession.token_field
     pendingProvider.value = activePendingSession.provider
     pendingRedirect.value = activePendingSession.redirect || ''
+    affCode.value = loadAffiliateReferralCode()
   }
 
   // Load public settings
@@ -395,6 +396,17 @@ function persistPendingOAuthSession(provider: string, redirect?: string): void {
     provider: provider.trim() || pendingProvider.value.trim(),
     redirect: redirect || pendingRedirect.value || undefined,
   })
+}
+
+function oauthAdoptionPayload(): Record<string, boolean> {
+  const payload: Record<string, boolean> = {}
+  if (typeof pendingAdoptionDecision.value?.adoptDisplayName === 'boolean') {
+    payload.adopt_display_name = pendingAdoptionDecision.value.adoptDisplayName
+  }
+  if (typeof pendingAdoptionDecision.value?.adoptAvatar === 'boolean') {
+    payload.adopt_avatar = pendingAdoptionDecision.value.adoptAvatar
+  }
+  return payload
 }
 
 // ==================== Send Code ====================
@@ -510,10 +522,9 @@ async function handleVerify(): Promise<void> {
           email: email.value,
           password: password.value,
           verify_code: verifyCode.value.trim(),
-          invitation_code: invitationCode.value || undefined,
+          ...(invitationCode.value ? { invitation_code: invitationCode.value } : {}),
           ...oauthAffiliatePayload(affCode.value || loadAffiliateReferralCode()),
-          adopt_display_name: pendingAdoptionDecision.value?.adoptDisplayName,
-          adopt_avatar: pendingAdoptionDecision.value?.adoptAvatar
+          ...oauthAdoptionPayload()
         }
       )
       if (isPendingOAuthSessionResponse(data)) {
