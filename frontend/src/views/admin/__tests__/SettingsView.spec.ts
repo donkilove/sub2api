@@ -458,6 +458,7 @@ function mountView() {
         ProxySelector: true,
         ImageUpload: ImageUploadStub,
         BackupSettings: true,
+        "router-link": { template: "<a><slot /></a>" },
       },
     },
   });
@@ -768,6 +769,7 @@ describe("admin SettingsView payment visible method controls", () => {
           ProxySelector: true,
           ImageUpload: ImageUploadStub,
           BackupSettings: true,
+          "router-link": { template: "<a><slot /></a>" },
         },
       },
     });
