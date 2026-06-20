@@ -401,6 +401,7 @@ export default {
     proxies: 'IP管理',
     redeemCodes: '兑换码',
     ops: '运维监控',
+    limitCenter: '限流中心',
     promoCodes: '优惠码',
     settings: '系统设置',
     myAccount: '我的账户',
@@ -5603,6 +5604,76 @@ export default {
         resetZoomHint: '重置缩放（若启用）',
         downloadChart: '下载',
         downloadChartHint: '下载图表图片'
+      }
+    },
+
+    limitCenter: {
+      title: '限流中心',
+      description: '按用户与分组批量管理并发和 RPM 限制。',
+      tabs: {
+        group: '按分组',
+        user: '按用户'
+      },
+      stats: {
+        groupDefaultRpm: '分组默认 RPM',
+        usersInGroup: '可用用户',
+        rpmOverrides: 'RPM 覆盖',
+        selectedUsers: '已选用户'
+      },
+      groupPicker: '分组',
+      groupRpm: '分组 RPM',
+      capacityConcurrency: '分组并发',
+      capacityRpm: '分组 RPM 用量',
+      searchUsers: '筛选用户',
+      searchPlaceholder: '搜索邮箱、用户名或备注',
+      emptyUsers: '当前分组暂无匹配用户',
+      columns: {
+        user: '用户',
+        group: '分组',
+        concurrency: '并发',
+        userRpm: '用户全局 RPM',
+        groupRpm: '分组生效 RPM',
+        status: '状态',
+        source: '来源'
+      },
+      source: {
+        override: '用户覆盖',
+        group: '分组默认',
+        none: '未设置'
+      },
+      bulkPanel: {
+        title: '批量操作',
+        selected: '已选用户',
+        concurrency: '用户全局并发',
+        set: '设为',
+        add: '增加',
+        applyConcurrency: '应用并发',
+        rpmOverride: '该分组 RPM 覆盖',
+        applyRpm: '设置 RPM',
+        clearRpm: '清除覆盖',
+        clearSelection: '清空选择'
+      },
+      inspect: {
+        searchPlaceholder: '搜索用户邮箱或用户名',
+        results: '用户',
+        empty: '暂无匹配用户',
+        pickUser: '选择一个用户查看生效限流',
+        userRpmUsed: '当前全局 RPM',
+        used: '已用',
+        noRpmGroups: '该用户暂无分组 RPM 记录'
+      },
+      messages: {
+        concurrencySaved: '已更新 {count} 个用户的并发限制',
+        rpmSaved: 'RPM 覆盖已保存',
+        rpmCleared: '已清除所选用户的 RPM 覆盖'
+      },
+      errors: {
+        loadGroups: '加载分组失败',
+        loadUsers: '加载用户失败',
+        loadRpm: '加载 RPM 覆盖失败',
+        loadRpmStatus: '加载用户 RPM 状态失败',
+        saveConcurrency: '保存并发限制失败',
+        saveRpm: '保存 RPM 覆盖失败'
       }
     },
 

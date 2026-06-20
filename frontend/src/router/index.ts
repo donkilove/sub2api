@@ -413,6 +413,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/limits',
+    name: 'AdminLimitCenter',
+    component: () => import('@/views/admin/LimitCenterView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Limit Center',
+      titleKey: 'admin.limitCenter.title',
+      descriptionKey: 'admin.limitCenter.description'
+    }
+  },
+  {
     path: '/admin/users',
     name: 'AdminUsers',
     component: () => import('@/views/admin/UsersView.vue'),

@@ -1,17 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { post } = vi.hoisted(() => ({
+const { get, post } = vi.hoisted(() => ({
+  get: vi.fn(),
   post: vi.fn(),
 }))
 
 vi.mock('@/api/client', () => ({
   apiClient: {
+    get,
     post,
   },
 }))
 
 import {
   bindUserAuthIdentity,
+  list,
   type AdminBindAuthIdentityRequest,
   type AdminBoundAuthIdentity,
 } from '@/api/admin/users'
@@ -66,7 +69,23 @@ const responseContractExact: Assert<
 
 describe('admin users api auth identity binding', () => {
   beforeEach(() => {
+    get.mockReset()
     post.mockReset()
+  })
+
+  it('sends allowed_group_id when listing users by usable group scope', async () => {
+    get.mockResolvedValue({ data: { items: [], total: 0, page: 1, page_size: 20 } })
+
+    await list(1, 20, { allowed_group_id: 7, sort_by: 'id', sort_order: 'asc' })
+
+    expect(get).toHaveBeenCalledWith('/admin/users', {
+      params: expect.objectContaining({
+        allowed_group_id: 7,
+        sort_by: 'id',
+        sort_order: 'asc',
+      }),
+      signal: undefined,
+    })
   })
 
   it('posts the backend-compatible auth identity bind payload and returns the backend response shape', async () => {

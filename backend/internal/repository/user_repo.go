@@ -473,6 +473,33 @@ func (r *userRepository) ListWithFilters(ctx context.Context, params pagination.
 			apikey.DeletedAtIsNil(),
 		))
 	}
+	if filters.AllowedGroupID > 0 {
+		groupRow, err := r.client.Group.Query().
+			Where(dbgroup.IDEQ(filters.AllowedGroupID)).
+			Only(ctx)
+		if err != nil {
+			if dbent.IsNotFound(err) {
+				return []service.User{}, paginationResultFromTotal(0, params), nil
+			}
+			return nil, nil, err
+		}
+
+		switch groupRow.SubscriptionType {
+		case service.SubscriptionTypeSubscription:
+			q = q.Where(dbuser.HasSubscriptionsWith(
+				usersubscription.GroupIDEQ(filters.AllowedGroupID),
+				usersubscription.StatusEQ(service.SubscriptionStatusActive),
+				usersubscription.ExpiresAtGT(time.Now()),
+				usersubscription.DeletedAtIsNil(),
+			))
+		default:
+			if groupRow.IsExclusive {
+				q = q.Where(dbuser.HasAllowedGroupsWith(
+					dbgroup.IDEQ(filters.AllowedGroupID),
+				))
+			}
+		}
+	}
 
 	// If attribute filters are specified, we need to filter by user IDs first
 	var allowedUserIDs []int64

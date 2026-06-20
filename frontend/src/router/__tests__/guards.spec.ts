@@ -251,6 +251,11 @@ describe('路由守卫逻辑', () => {
       expect(redirect).toBeNull()
     })
 
+    it('访问限流中心允许通过', () => {
+      const redirect = simulateGuard('/admin/limits', { requiresAdmin: true }, authState)
+      expect(redirect).toBeNull()
+    })
+
     it('访问用户页面允许通过', () => {
       const redirect = simulateGuard('/dashboard', {}, authState)
       expect(redirect).toBeNull()

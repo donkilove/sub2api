@@ -401,6 +401,7 @@ export default {
     proxies: 'Proxies',
     redeemCodes: 'Redeem Codes',
     ops: 'Ops',
+    limitCenter: 'Limit Center',
     promoCodes: 'Promo Codes',
     settings: 'Settings',
     myAccount: 'My Account',
@@ -5443,6 +5444,76 @@ export default {
         resetZoomHint: 'Reset zoom (if enabled)',
         downloadChart: 'Download',
         downloadChartHint: 'Download chart as image'
+      }
+    },
+
+    limitCenter: {
+      title: 'Limit Center',
+      description: 'Batch-manage user concurrency and RPM limits by group.',
+      tabs: {
+        group: 'By Group',
+        user: 'By User'
+      },
+      stats: {
+        groupDefaultRpm: 'Group RPM',
+        usersInGroup: 'Eligible users',
+        rpmOverrides: 'RPM overrides',
+        selectedUsers: 'Selected users'
+      },
+      groupPicker: 'Group',
+      groupRpm: 'Group RPM',
+      capacityConcurrency: 'Group concurrency',
+      capacityRpm: 'Group RPM usage',
+      searchUsers: 'Filter users',
+      searchPlaceholder: 'Search email, username, or notes',
+      emptyUsers: 'No matching users in this group',
+      columns: {
+        user: 'User',
+        group: 'Group',
+        concurrency: 'Concurrency',
+        userRpm: 'User global RPM',
+        groupRpm: 'Effective group RPM',
+        status: 'Status',
+        source: 'Source'
+      },
+      source: {
+        override: 'User override',
+        group: 'Group default',
+        none: 'Not set'
+      },
+      bulkPanel: {
+        title: 'Bulk Actions',
+        selected: 'Selected users',
+        concurrency: 'User global concurrency',
+        set: 'Set',
+        add: 'Add',
+        applyConcurrency: 'Apply concurrency',
+        rpmOverride: 'Group RPM override',
+        applyRpm: 'Set RPM',
+        clearRpm: 'Clear override',
+        clearSelection: 'Clear selection'
+      },
+      inspect: {
+        searchPlaceholder: 'Search user email or username',
+        results: 'Users',
+        empty: 'No matching users',
+        pickUser: 'Select a user to inspect effective limits',
+        userRpmUsed: 'Current global RPM',
+        used: 'Used',
+        noRpmGroups: 'No group RPM records for this user'
+      },
+      messages: {
+        concurrencySaved: 'Updated concurrency for {count} users',
+        rpmSaved: 'RPM overrides saved',
+        rpmCleared: 'RPM overrides cleared for selected users'
+      },
+      errors: {
+        loadGroups: 'Failed to load groups',
+        loadUsers: 'Failed to load users',
+        loadRpm: 'Failed to load RPM overrides',
+        loadRpmStatus: 'Failed to load user RPM status',
+        saveConcurrency: 'Failed to save concurrency limits',
+        saveRpm: 'Failed to save RPM overrides'
       }
     },
 

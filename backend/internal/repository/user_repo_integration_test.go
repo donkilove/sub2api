@@ -63,12 +63,19 @@ func (s *UserRepoSuite) mustCreateUser(u *service.User) *service.User {
 }
 
 func (s *UserRepoSuite) mustCreateGroup(name string) *service.Group {
+	return s.mustCreateGroupWith(name, nil)
+}
+
+func (s *UserRepoSuite) mustCreateGroupWith(name string, mutate func(*dbent.GroupCreate)) *service.Group {
 	s.T().Helper()
 
-	g, err := s.client.Group.Create().
+	create := s.client.Group.Create().
 		SetName(name).
-		SetStatus(service.StatusActive).
-		Save(s.ctx)
+		SetStatus(service.StatusActive)
+	if mutate != nil {
+		mutate(create)
+	}
+	g, err := create.Save(s.ctx)
 	s.Require().NoError(err, "create group")
 	return groupEntityToService(g)
 }
@@ -299,6 +306,67 @@ func (s *UserRepoSuite) TestListWithFilters_LoadsActiveSubscriptions() {
 	s.Require().Len(users[0].Subscriptions, 1, "expected 1 active subscription")
 	s.Require().NotNil(users[0].Subscriptions[0].Group, "expected subscription group preload")
 	s.Require().Equal(groupActive.ID, users[0].Subscriptions[0].Group.ID, "group ID mismatch")
+}
+
+func (s *UserRepoSuite) TestListWithFilters_AllowedGroupID_PublicStandardGroupIncludesAllUsers() {
+	group := s.mustCreateGroup("g-allowed-public")
+	u1 := s.mustCreateUser(&service.User{Email: "allowed-public-1@test.com"})
+	u2 := s.mustCreateUser(&service.User{Email: "allowed-public-2@test.com"})
+
+	users, page, err := s.repo.ListWithFilters(
+		s.ctx,
+		pagination.PaginationParams{Page: 1, PageSize: 10, SortBy: "id", SortOrder: "asc"},
+		service.UserListFilters{AllowedGroupID: group.ID},
+	)
+
+	s.Require().NoError(err, "ListWithFilters")
+	s.Require().Equal(int64(2), page.Total)
+	s.Require().Equal([]int64{u1.ID, u2.ID}, []int64{users[0].ID, users[1].ID})
+}
+
+func (s *UserRepoSuite) TestListWithFilters_AllowedGroupID_ExclusiveStandardGroupRequiresAllowedGroup() {
+	group := s.mustCreateGroupWith("g-allowed-exclusive", func(c *dbent.GroupCreate) {
+		c.SetIsExclusive(true)
+	})
+	hit := s.mustCreateUser(&service.User{
+		Email:         "allowed-exclusive-hit@test.com",
+		AllowedGroups: []int64{group.ID},
+	})
+	s.mustCreateUser(&service.User{Email: "allowed-exclusive-miss@test.com"})
+
+	users, page, err := s.repo.ListWithFilters(
+		s.ctx,
+		pagination.PaginationParams{Page: 1, PageSize: 10},
+		service.UserListFilters{AllowedGroupID: group.ID},
+	)
+
+	s.Require().NoError(err, "ListWithFilters")
+	s.Require().Equal(int64(1), page.Total)
+	s.Require().Equal(hit.ID, users[0].ID)
+}
+
+func (s *UserRepoSuite) TestListWithFilters_AllowedGroupID_SubscriptionGroupRequiresActiveSubscription() {
+	group := s.mustCreateGroupWith("g-allowed-subscription", func(c *dbent.GroupCreate) {
+		c.SetSubscriptionType(service.SubscriptionTypeSubscription)
+	})
+	hit := s.mustCreateUser(&service.User{Email: "allowed-subscription-hit@test.com"})
+	expired := s.mustCreateUser(&service.User{Email: "allowed-subscription-expired@test.com"})
+	miss := s.mustCreateUser(&service.User{Email: "allowed-subscription-miss@test.com"})
+	_ = miss
+	s.mustCreateSubscription(hit.ID, group.ID, nil)
+	s.mustCreateSubscription(expired.ID, group.ID, func(c *dbent.UserSubscriptionCreate) {
+		c.SetExpiresAt(time.Now().Add(-1 * time.Hour))
+	})
+
+	users, page, err := s.repo.ListWithFilters(
+		s.ctx,
+		pagination.PaginationParams{Page: 1, PageSize: 10},
+		service.UserListFilters{AllowedGroupID: group.ID},
+	)
+
+	s.Require().NoError(err, "ListWithFilters")
+	s.Require().Equal(int64(1), page.Total)
+	s.Require().Equal(hit.ID, users[0].ID)
 }
 
 func (s *UserRepoSuite) TestListWithFilters_CombinedFilters() {

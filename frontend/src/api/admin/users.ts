@@ -60,6 +60,7 @@ export async function list(
     role?: 'admin' | 'user'
     search?: string
     group_name?: string         // fuzzy filter by allowed group name
+    allowed_group_id?: number   // filter users who can use the group
     api_key_group_id?: number   // filter users by the group their API keys are bound to
     attributes?: Record<number, string>  // attributeId -> value
     include_subscriptions?: boolean
@@ -78,6 +79,7 @@ export async function list(
     role: filters?.role,
     search: filters?.search,
     group_name: filters?.group_name,
+    allowed_group_id: filters?.allowed_group_id,
     api_key_group_id: filters?.api_key_group_id,
     include_subscriptions: filters?.include_subscriptions,
     sort_by: filters?.sort_by,
@@ -181,6 +183,46 @@ export async function updateBalance(
  */
 export async function updateConcurrency(id: number, concurrency: number): Promise<AdminUser> {
   return update(id, { concurrency })
+}
+
+export interface BatchUpdateConcurrencyRequest {
+  user_ids?: number[]
+  all?: boolean
+  concurrency: number
+  mode: 'set' | 'add'
+}
+
+export interface BatchUpdateConcurrencyResponse {
+  affected: number
+}
+
+export async function batchUpdateConcurrency(
+  payload: BatchUpdateConcurrencyRequest
+): Promise<BatchUpdateConcurrencyResponse> {
+  const { data } = await apiClient.post<BatchUpdateConcurrencyResponse>(
+    '/admin/users/batch-concurrency',
+    payload
+  )
+  return data
+}
+
+export interface UserGroupRPMStatus {
+  group_id: number
+  group_name?: string
+  used: number
+  limit: number
+  source: 'group' | 'override' | ''
+}
+
+export interface UserRPMStatus {
+  user_rpm_used: number
+  user_rpm_limit: number
+  per_group: UserGroupRPMStatus[]
+}
+
+export async function getRPMStatus(id: number): Promise<UserRPMStatus> {
+  const { data } = await apiClient.get<UserRPMStatus>(`/admin/users/${id}/rpm-status`)
+  return data
 }
 
 /**
@@ -384,6 +426,8 @@ export const usersAPI = {
   delete: deleteUser,
   updateBalance,
   updateConcurrency,
+  batchUpdateConcurrency,
+  getRPMStatus,
   toggleStatus,
   getUserApiKeys,
   getUserUsageStats,
