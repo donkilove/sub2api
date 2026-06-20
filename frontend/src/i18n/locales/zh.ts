@@ -1382,6 +1382,7 @@ export default {
         emailManagedFromProfile: '主邮箱在资料表单中管理',
         canUnbind: '你可以解绑这个登录方式。',
         bindAnotherBeforeUnbind: '请先绑定其他登录方式，再解除当前绑定。',
+        signupSourceProtected: '这是创建账号时使用的登录方式，不能自行解绑。',
       },
       source: {
         avatar: '头像当前来自 {providerName}',

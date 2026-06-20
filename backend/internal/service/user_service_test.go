@@ -422,6 +422,43 @@ func TestUnbindUserAuthProviderRejectsLastRemainingLoginMethod(t *testing.T) {
 	require.Empty(t, repo.unboundProviders)
 }
 
+func TestUnbindUserAuthProviderRejectsSignupSourceProviderEvenWithEmailLogin(t *testing.T) {
+	repo := &mockUserRepo{
+		getByIDUser: &User{
+			ID:           13,
+			Email:        "unifed-user@example.com",
+			SignupSource: "unifed",
+		},
+		identities: []UserAuthIdentityRecord{
+			{
+				ProviderType:    "email",
+				ProviderKey:     "email",
+				ProviderSubject: "unifed-user@example.com",
+				Metadata: map[string]any{
+					"source": "auth_service_email_bind",
+				},
+			},
+			{
+				ProviderType:    "unifed",
+				ProviderKey:     "unifed",
+				ProviderSubject: "unifed-subject-13",
+			},
+		},
+	}
+	svc := NewUserService(repo, nil, nil, nil)
+
+	summaries, err := svc.GetProfileIdentitySummaries(context.Background(), 13, repo.getByIDUser)
+	require.NoError(t, err)
+	require.True(t, summaries.Email.Bound)
+	require.True(t, summaries.UniFed.Bound)
+	require.False(t, summaries.UniFed.CanUnbind)
+	require.Equal(t, userIdentityNoteSignupSourceProtected, summaries.UniFed.NoteKey)
+
+	_, err = svc.UnbindUserAuthProvider(context.Background(), 13, "unifed")
+	require.ErrorIs(t, err, ErrIdentityUnbindSignupSource)
+	require.Empty(t, repo.unboundProviders)
+}
+
 func TestGetProfileIdentitySummaries_DoesNotTreatOAuthOnlyCompatEmailAsAlternativeLoginMethod(t *testing.T) {
 	repo := &mockUserRepo{
 		getByIDUser: &User{
@@ -443,9 +480,10 @@ func TestGetProfileIdentitySummaries_DoesNotTreatOAuthOnlyCompatEmailAsAlternati
 
 	require.NoError(t, err)
 	require.False(t, summaries.OIDC.CanUnbind)
+	require.Equal(t, userIdentityNoteSignupSourceProtected, summaries.OIDC.NoteKey)
 
 	_, err = svc.UnbindUserAuthProvider(context.Background(), 10, "oidc")
-	require.ErrorIs(t, err, ErrIdentityUnbindLastMethod)
+	require.ErrorIs(t, err, ErrIdentityUnbindSignupSource)
 	require.Empty(t, repo.unboundProviders)
 }
 
@@ -480,9 +518,10 @@ func TestGetProfileIdentitySummaries_DoesNotTreatCompatBackfilledEmailIdentityAs
 	require.NoError(t, err)
 	require.True(t, summaries.Email.Bound)
 	require.False(t, summaries.WeChat.CanUnbind)
+	require.Equal(t, userIdentityNoteSignupSourceProtected, summaries.WeChat.NoteKey)
 
 	_, err = svc.UnbindUserAuthProvider(context.Background(), 11, "wechat")
-	require.ErrorIs(t, err, ErrIdentityUnbindLastMethod)
+	require.ErrorIs(t, err, ErrIdentityUnbindSignupSource)
 	require.Empty(t, repo.unboundProviders)
 }
 

@@ -42,6 +42,10 @@ var (
 		"IDENTITY_UNBIND_LAST_METHOD",
 		"bind another sign-in method before unbinding this provider",
 	)
+	ErrIdentityUnbindSignupSource = infraerrors.Conflict(
+		"IDENTITY_UNBIND_SIGNUP_SOURCE",
+		"this sign-in method created the account and cannot be unbound",
+	)
 )
 
 const (
@@ -174,6 +178,7 @@ const (
 	userIdentityNoteEmailManagedFromProfile = "profile.authBindings.notes.emailManagedFromProfile"
 	userIdentityNoteCanUnbind               = "profile.authBindings.notes.canUnbind"
 	userIdentityNoteBindAnotherBeforeUnbind = "profile.authBindings.notes.bindAnotherBeforeUnbind"
+	userIdentityNoteSignupSourceProtected   = "profile.authBindings.notes.signupSourceProtected"
 )
 
 // UpdateProfileRequest 更新用户资料请求
@@ -376,6 +381,9 @@ func (s *UserService) UnbindUserAuthProviderWithResult(ctx context.Context, user
 	}
 	if len(filterUserAuthIdentities(records, provider)) == 0 {
 		return user, false, nil
+	}
+	if isSignupSourceProvider(user, provider) {
+		return nil, false, ErrIdentityUnbindSignupSource
 	}
 	if !s.canUnbindProvider(provider, user, records) {
 		return nil, false, ErrIdentityUnbindLastMethod
@@ -701,6 +709,9 @@ func (s *UserService) buildProviderIdentitySummary(provider string, user *User, 
 	if summary.CanUnbind {
 		summary.NoteKey = userIdentityNoteCanUnbind
 		summary.Note = "You can unbind this sign-in method."
+	} else if isSignupSourceProvider(user, provider) {
+		summary.NoteKey = userIdentityNoteSignupSourceProtected
+		summary.Note = "This sign-in method created the account and cannot be unbound."
 	} else {
 		summary.NoteKey = userIdentityNoteBindAnotherBeforeUnbind
 		summary.Note = "Bind another sign-in method before unbinding."
@@ -710,6 +721,9 @@ func (s *UserService) buildProviderIdentitySummary(provider string, user *User, 
 
 func (s *UserService) canUnbindProvider(provider string, user *User, records []UserAuthIdentityRecord) bool {
 	if provider == "" || provider == "email" || len(filterUserAuthIdentities(records, provider)) == 0 {
+		return false
+	}
+	if isSignupSourceProvider(user, provider) {
 		return false
 	}
 
@@ -727,6 +741,17 @@ func (s *UserService) canUnbindProvider(provider string, user *User, records []U
 	}
 
 	return false
+}
+
+func isSignupSourceProvider(user *User, provider string) bool {
+	if user == nil {
+		return false
+	}
+	provider = normalizeUserIdentityProvider(provider)
+	if provider == "" || provider == "email" {
+		return false
+	}
+	return strings.EqualFold(strings.TrimSpace(user.SignupSource), provider)
 }
 
 func (s *UserService) canUseEmailAsSignInMethod(user *User, records []UserAuthIdentityRecord) bool {

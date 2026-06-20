@@ -1378,6 +1378,7 @@ export default {
         emailManagedFromProfile: 'Primary email is managed in the profile form',
         canUnbind: 'You can unbind this sign-in method',
         bindAnotherBeforeUnbind: 'Bind another sign-in method before unbinding',
+        signupSourceProtected: 'This sign-in method created the account and cannot be unbound',
       },
       source: {
         avatar: 'Avatar is currently synced from {providerName}',

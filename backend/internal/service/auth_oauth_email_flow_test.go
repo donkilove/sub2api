@@ -22,6 +22,11 @@ type redeemCodeRepoStub struct {
 	updateCalls []*RedeemCode
 }
 
+func TestNormalizeOAuthSignupSourceAllowsUniFed(t *testing.T) {
+	require.Equal(t, "unifed", normalizeOAuthSignupSource(" unifed "))
+	require.Equal(t, "unifed", normalizeOAuthSignupSource("UNIFED"))
+}
+
 func (s *redeemCodeRepoStub) Create(context.Context, *RedeemCode) error {
 	panic("unexpected Create call")
 }
