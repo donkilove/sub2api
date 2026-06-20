@@ -747,6 +747,8 @@ func (s *AuthService) loginOrRegisterOAuthWithTokenPair(ctx context.Context, ema
 		return nil, nil, ErrUserNotActive
 	}
 
+	s.reconcileOAuthSignupSource(ctx, user, email, signupSource)
+
 	if user.Username == "" && username != "" {
 		user.Username = username
 		if err := s.userRepo.Update(ctx, user); err != nil {
@@ -907,6 +909,27 @@ func (s *AuthService) postAuthUserBootstrap(ctx context.Context, user *User, sig
 	if touchLogin {
 		s.touchUserLogin(ctx, user.ID)
 	}
+}
+
+func (s *AuthService) reconcileOAuthSignupSource(ctx context.Context, user *User, email, signupSource string) {
+	if s == nil || user == nil || user.ID <= 0 {
+		return
+	}
+	signupSource = strings.TrimSpace(strings.ToLower(signupSource))
+	if signupSource == "" {
+		signupSource = inferLegacySignupSource(email)
+	}
+	if signupSource != "unifed" {
+		return
+	}
+	if strings.EqualFold(strings.TrimSpace(user.SignupSource), signupSource) {
+		return
+	}
+	if !strings.HasSuffix(strings.ToLower(strings.TrimSpace(email)), UniFedConnectSyntheticEmailDomain) {
+		return
+	}
+	s.postAuthUserBootstrap(ctx, user, signupSource, false)
+	user.SignupSource = signupSource
 }
 
 func (s *AuthService) updateUserSignupSource(ctx context.Context, userID int64, signupSource string) {

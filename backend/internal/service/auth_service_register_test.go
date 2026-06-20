@@ -748,6 +748,30 @@ func TestAuthService_LoginOrRegisterOAuthWithTokenPair_ExistingUserDoesNotGrantA
 	require.Empty(t, assigner.calls)
 }
 
+func TestAuthService_LoginOrRegisterOAuthWithTokenPair_ReconcilesLegacyUniFedSignupSource(t *testing.T) {
+	existing := &User{
+		ID:           89,
+		Email:        "unifed-abc123@unifed-connect.invalid",
+		Username:     "legacy-unifed",
+		Role:         RoleUser,
+		Status:       StatusActive,
+		SignupSource: "email",
+		TokenVersion: 2,
+	}
+	repo := &userRepoStub{user: existing}
+	service := newAuthService(repo, map[string]string{
+		SettingKeyRegistrationEnabled: "true",
+	}, nil, nil)
+	service.refreshTokenCache = &refreshTokenCacheStub{}
+
+	tokenPair, user, err := service.LoginOrRegisterOAuthWithTokenPair(context.Background(), existing.Email, "unifed_user", "", "", "unifed")
+	require.NoError(t, err)
+	require.NotNil(t, tokenPair)
+	require.Equal(t, existing.ID, user.ID)
+	require.Equal(t, "unifed", user.SignupSource)
+	require.Empty(t, repo.created)
+}
+
 // newAuthServiceWithDingTalkCfg 构建一个含完整 DingTalk config 的 AuthService，
 // 用于测试 canBypassRegistrationDisabledForOAuth。
 func newAuthServiceWithDingTalkCfg(settings map[string]string, dtCfg config.DingTalkConnectConfig) *AuthService {
