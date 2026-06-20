@@ -871,6 +871,8 @@ func authSourceSignupSettings(defaults *AuthSourceDefaultSettings, signupSource 
 		return defaults.Google, true
 	case "dingtalk":
 		return defaults.DingTalk, true
+	case "unifed":
+		return defaults.UniFed, true
 	default:
 		return ProviderDefaultGrantSettings{}, false
 	}
@@ -1092,6 +1094,8 @@ func inferLegacySignupSource(email string) string {
 		return "oidc"
 	case strings.HasSuffix(normalized, WeChatConnectSyntheticEmailDomain):
 		return "wechat"
+	case strings.HasSuffix(normalized, UniFedConnectSyntheticEmailDomain):
+		return "unifed"
 	default:
 		return "email"
 	}
@@ -1181,7 +1185,8 @@ func isReservedEmail(email string) bool {
 	return strings.HasSuffix(normalized, LinuxDoConnectSyntheticEmailDomain) ||
 		strings.HasSuffix(normalized, OIDCConnectSyntheticEmailDomain) ||
 		strings.HasSuffix(normalized, WeChatConnectSyntheticEmailDomain) ||
-		strings.HasSuffix(normalized, DingTalkConnectSyntheticEmailDomain)
+		strings.HasSuffix(normalized, DingTalkConnectSyntheticEmailDomain) ||
+		strings.HasSuffix(normalized, UniFedConnectSyntheticEmailDomain)
 }
 
 // GenerateToken 生成JWT access token
