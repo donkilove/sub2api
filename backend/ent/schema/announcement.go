@@ -63,13 +63,13 @@ func (Announcement) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			Comment("创建人用户ID（管理员）"),
-field.Int64("updated_by").
-				Optional().
-				Nillable().
-				Comment("更新人用户ID（管理员）"),
-			field.Bool("is_pinned").
-				Default(false).
-				Comment("是否置顶（全局唯一，新置顶会取消旧置顶）"),
+		field.Int64("updated_by").
+			Optional().
+			Nillable().
+			Comment("更新人用户ID（管理员）"),
+		field.Bool("is_pinned").
+			Default(false).
+			Comment("是否置顶（全局唯一，新置顶会取消旧置顶）"),
 		field.Time("created_at").
 			Immutable().
 			Default(time.Now).

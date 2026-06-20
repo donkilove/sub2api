@@ -343,18 +343,18 @@ func registerAccountRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 }
 
 func registerAnnouncementRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
-		announcements := admin.Group("/announcements")
-		{
-			announcements.GET("", h.Admin.Announcement.List)
-			announcements.POST("", h.Admin.Announcement.Create)
-			announcements.GET("/:id", h.Admin.Announcement.GetByID)
-			announcements.PUT("/:id", h.Admin.Announcement.Update)
-			announcements.DELETE("/:id", h.Admin.Announcement.Delete)
-			announcements.GET("/:id/read-status", h.Admin.Announcement.ListReadStatus)
-			announcements.POST("/:id/pin", h.Admin.Announcement.Pin)
-			announcements.POST("/:id/unpin", h.Admin.Announcement.Unpin)
-		}
+	announcements := admin.Group("/announcements")
+	{
+		announcements.GET("", h.Admin.Announcement.List)
+		announcements.POST("", h.Admin.Announcement.Create)
+		announcements.GET("/:id", h.Admin.Announcement.GetByID)
+		announcements.PUT("/:id", h.Admin.Announcement.Update)
+		announcements.DELETE("/:id", h.Admin.Announcement.Delete)
+		announcements.GET("/:id/read-status", h.Admin.Announcement.ListReadStatus)
+		announcements.POST("/:id/pin", h.Admin.Announcement.Pin)
+		announcements.POST("/:id/unpin", h.Admin.Announcement.Unpin)
 	}
+}
 
 func registerOpenAIOAuthRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	openai := admin.Group("/openai")

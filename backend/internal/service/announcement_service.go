@@ -430,12 +430,12 @@ func (s *AnnouncementService) ListRecentForHomepage(ctx context.Context, limit i
 	if err != nil {
 		return nil, nil, err
 	}
-	
+
 	var excludeID int64
 	if pinned != nil {
 		excludeID = pinned.ID
 	}
-	
+
 	recent, err := s.announcementRepo.ListRecent(ctx, limit, excludeID)
 	if err != nil {
 		return nil, nil, err
