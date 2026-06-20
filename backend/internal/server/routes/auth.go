@@ -79,6 +79,21 @@ func RegisterAuthRoutes(
 			}),
 			h.Auth.CompleteGoogleOAuthRegistration,
 		)
+		// Universe Federation (Sharkey MiAuth) OAuth 登录
+		auth.GET("/oauth/unifed/start", h.Auth.UniFedOAuthStart)
+		auth.GET("/oauth/unifed/bind/start", func(c *gin.Context) {
+			query := c.Request.URL.Query()
+			query.Set("intent", "bind_current_user")
+			c.Request.URL.RawQuery = query.Encode()
+			h.Auth.UniFedOAuthStart(c)
+		})
+		auth.GET("/oauth/unifed/callback", h.Auth.UniFedOAuthCallback)
+		auth.POST("/oauth/unifed/complete-registration",
+			rateLimiter.LimitWithOptions("oauth-unifed-complete", 10, time.Minute, middleware.RateLimitOptions{
+				FailureMode: middleware.RateLimitFailClose,
+			}),
+			h.Auth.CompleteUniFedOAuthRegistration,
+		)
 		auth.GET("/oauth/linuxdo/bind/start", func(c *gin.Context) {
 			query := c.Request.URL.Query()
 			query.Set("intent", "bind_current_user")
