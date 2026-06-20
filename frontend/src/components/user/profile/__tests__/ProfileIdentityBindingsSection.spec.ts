@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ProfileIdentityBindingsSection from '@/components/user/profile/ProfileIdentityBindingsSection.vue'
@@ -47,7 +47,9 @@ vi.mock('vue-i18n', async (importOriginal) => {
         if (key === 'profile.authBindings.status.notBound') return 'Not bound'
         if (key === 'profile.authBindings.providers.email') return 'Email'
         if (key === 'profile.authBindings.providers.linuxdo') return 'LinuxDo'
+        if (key === 'profile.authBindings.providers.dingtalk') return 'DingTalk'
         if (key === 'profile.authBindings.providers.wechat') return 'WeChat'
+        if (key === 'profile.authBindings.providers.unifed') return 'Universe Federation'
         if (key === 'profile.authBindings.providers.oidc') return params?.providerName || 'OIDC'
         if (key === 'profile.authBindings.bindAction') return `Bind ${params?.providerName || ''}`.trim()
         if (key === 'profile.authBindings.emailPlaceholder') return 'Email address'
@@ -172,6 +174,53 @@ describe('ProfileIdentityBindingsSection', () => {
 
     expect(locationState.current.href).toContain('/api/v1/auth/oauth/wechat/bind/start?')
     expect(locationState.current.href).toContain('mode=open')
+    expect(locationState.current.href).toContain('intent=bind_current_user')
+    expect(locationState.current.href).toContain('redirect=%2Fprofile')
+  })
+
+  it('shows UniFed as bindable when enabled and unbound', () => {
+    const wrapper = mount(ProfileIdentityBindingsSection, {
+      global: {
+        plugins: [pinia],
+      },
+      props: {
+        user: createUser({
+          auth_bindings: {
+            unifed: {
+              bound: false,
+              bound_count: 0,
+              can_bind: true,
+              can_unbind: false,
+              bind_start_path:
+                '/api/v1/auth/oauth/unifed/bind/start?intent=bind_current_user&redirect=%2Fsettings%2Fprofile',
+            },
+          },
+        }),
+        unifedEnabled: true,
+      },
+    })
+
+    expect(wrapper.text()).toContain('Universe Federation')
+    expect(wrapper.get('[data-testid="profile-binding-unifed-action"]').text()).toBe(
+      'Bind Universe Federation'
+    )
+  })
+
+  it('starts the UniFed bind flow for the current profile page', async () => {
+    const wrapper = mount(ProfileIdentityBindingsSection, {
+      global: {
+        plugins: [pinia],
+      },
+      props: {
+        user: createUser(),
+        unifedEnabled: true,
+      },
+    })
+
+    await wrapper.get('[data-testid="profile-binding-unifed-action"]').trigger('click')
+    await flushPromises()
+
+    expect(locationState.current.href).toContain('/api/v1/auth/oauth/unifed/bind/start?')
     expect(locationState.current.href).toContain('intent=bind_current_user')
     expect(locationState.current.href).toContain('redirect=%2Fprofile')
   })

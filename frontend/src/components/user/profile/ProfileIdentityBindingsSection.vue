@@ -218,6 +218,7 @@ const props = withDefaults(
     user: User | null
     linuxdoEnabled?: boolean
     dingtalkEnabled?: boolean
+    unifedEnabled?: boolean
     oidcEnabled?: boolean
     oidcProviderName?: string
     wechatEnabled?: boolean
@@ -229,6 +230,7 @@ const props = withDefaults(
   {
     linuxdoEnabled: false,
     dingtalkEnabled: false,
+    unifedEnabled: false,
     oidcEnabled: false,
     oidcProviderName: 'OIDC',
     wechatEnabled: false,
@@ -411,6 +413,9 @@ function isProviderEnabledForBinding(provider: BindableProvider): boolean {
   if (provider === 'dingtalk') {
     return props.dingtalkEnabled
   }
+  if (provider === 'unifed') {
+    return props.unifedEnabled
+  }
   if (provider === 'oidc') {
     return props.oidcEnabled
   }
@@ -449,6 +454,17 @@ const providerItems = computed(() => [
     details: getBindingDetails('dingtalk'),
   },
   {
+    provider: 'unifed' as const,
+    label: t('profile.authBindings.providers.unifed'),
+    bound: getBindingStatus('unifed'),
+    canBind:
+      !getBindingStatus('unifed') &&
+      isProviderEnabledForBinding('unifed') &&
+      (getBindingDetails('unifed')?.can_bind ?? true),
+    canUnbind: Boolean(getBindingStatus('unifed') && getBindingDetails('unifed')?.can_unbind),
+    details: getBindingDetails('unifed'),
+  },
+  {
     provider: 'oidc' as const,
     label: t('profile.authBindings.providers.oidc', { providerName: props.oidcProviderName }),
     bound: getBindingStatus('oidc'),
@@ -482,6 +498,9 @@ function providerInitial(provider: UserAuthProvider): string {
   if (provider === 'wechat') {
     return 'W'
   }
+  if (provider === 'unifed') {
+    return 'U'
+  }
   if (provider === 'oidc') {
     return 'O'
   }
@@ -497,6 +516,9 @@ function providerIconClass(provider: UserAuthProvider): string {
   }
   if (provider === 'wechat') {
     return 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-300'
+  }
+  if (provider === 'unifed') {
+    return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-300'
   }
   if (provider === 'oidc') {
     return 'bg-sky-100 text-sky-600 dark:bg-sky-900/20 dark:text-sky-300'

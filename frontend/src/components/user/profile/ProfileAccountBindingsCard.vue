@@ -3,6 +3,7 @@
     :user="user"
     :linuxdo-enabled="linuxdoEnabled"
     :dingtalk-enabled="dingtalkEnabled"
+    :unifed-enabled="unifedEnabled"
     :oidc-enabled="oidcEnabled"
     :oidc-provider-name="oidcProviderName"
     :wechat-enabled="wechatEnabled"
@@ -20,6 +21,7 @@ withDefaults(
     user: User | null
     linuxdoEnabled?: boolean
     dingtalkEnabled?: boolean
+    unifedEnabled?: boolean
     oidcEnabled?: boolean
     oidcProviderName?: string
     wechatEnabled?: boolean
@@ -29,6 +31,7 @@ withDefaults(
   {
     linuxdoEnabled: false,
     dingtalkEnabled: false,
+    unifedEnabled: false,
     oidcEnabled: false,
     oidcProviderName: 'OIDC',
     wechatEnabled: false,

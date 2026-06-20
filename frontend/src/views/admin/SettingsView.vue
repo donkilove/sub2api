@@ -1787,6 +1787,88 @@
             </div>
           </div>
 
+          <!-- UniFed Connect MiAuth 登录 -->
+          <div class="card">
+            <div class="border-b border-gray-100 px-6 py-4 dark:border-dark-700">
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                {{ t("admin.settings.unifed.title") }}
+              </h2>
+              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {{ t("admin.settings.unifed.description") }}
+              </p>
+            </div>
+            <div class="space-y-5 p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="font-medium text-gray-900 dark:text-white">{{
+                    t("admin.settings.unifed.enable")
+                  }}</label>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ t("admin.settings.unifed.enableHint") }}
+                  </p>
+                </div>
+                <Toggle
+                  v-model="form.unifed_connect_enabled"
+                  data-testid="unifed-connect-enabled"
+                />
+              </div>
+
+              <div
+                v-if="form.unifed_connect_enabled"
+                class="border-t border-gray-100 pt-4 dark:border-dark-700"
+              >
+                <div class="grid grid-cols-1 gap-6">
+                  <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {{ t("admin.settings.unifed.instanceUrl") }}
+                    </label>
+                    <input
+                      v-model="form.unifed_connect_instance_url"
+                      data-testid="unifed-connect-instance-url"
+                      type="url"
+                      class="input font-mono text-sm"
+                      :placeholder="t('admin.settings.unifed.instanceUrlPlaceholder')"
+                    />
+                    <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                      {{ t("admin.settings.unifed.instanceUrlHint") }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {{ t("admin.settings.unifed.redirectUrl") }}
+                    </label>
+                    <input
+                      v-model="form.unifed_connect_redirect_url"
+                      data-testid="unifed-connect-redirect-url"
+                      type="url"
+                      class="input font-mono text-sm"
+                      :placeholder="t('admin.settings.unifed.redirectUrlPlaceholder')"
+                    />
+                    <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-sm w-fit"
+                        @click="setAndCopyUniFedRedirectUrl"
+                      >
+                        {{ t("admin.settings.unifed.quickSetCopy") }}
+                      </button>
+                      <code
+                        v-if="unifedRedirectUrlSuggestion"
+                        class="select-all break-all rounded bg-gray-50 px-2 py-1 font-mono text-xs text-gray-600 dark:bg-dark-800 dark:text-gray-300"
+                      >
+                        {{ unifedRedirectUrlSuggestion }}
+                      </code>
+                    </div>
+                    <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                      {{ t("admin.settings.unifed.redirectUrlHint") }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- GitHub / Google 邮箱快捷登录 -->
           <div class="card">
             <div
@@ -7749,6 +7831,9 @@ const form = reactive<SettingsForm>({
   dingtalk_connect_sync_corp_email_attr_name: "钉钉企业邮箱",
   dingtalk_connect_sync_display_name_attr_name: "钉钉姓名",
   dingtalk_connect_sync_dept_attr_name: "钉钉部门",
+  unifed_connect_enabled: false,
+  unifed_connect_instance_url: "https://dc.hhhl.cc",
+  unifed_connect_redirect_url: "",
   wechat_connect_enabled: false,
   wechat_connect_app_id: "",
   wechat_connect_app_secret: "",
@@ -7880,6 +7965,11 @@ const authSourceDefaultsMeta = computed(() => [
     source: "wechat" as AuthSourceType,
     title: t("admin.settings.authSourceDefaults.sources.wechat.title"),
     description: t("admin.settings.authSourceDefaults.sources.wechat.description"),
+  },
+  {
+    source: "unifed" as AuthSourceType,
+    title: t("admin.settings.authSourceDefaults.sources.unifed.title"),
+    description: t("admin.settings.authSourceDefaults.sources.unifed.description"),
   },
   {
     source: "github" as AuthSourceType,
@@ -8209,6 +8299,25 @@ async function setAndCopyLinuxdoRedirectUrl() {
   await copyToClipboard(
     url,
     t("admin.settings.linuxdo.redirectUrlSetAndCopied"),
+  );
+}
+
+const unifedRedirectUrlSuggestion = computed(() => {
+  if (typeof window === "undefined") return "";
+  const origin =
+    window.location.origin ||
+    `${window.location.protocol}//${window.location.host}`;
+  return `${origin}/api/v1/auth/oauth/unifed/callback`;
+});
+
+async function setAndCopyUniFedRedirectUrl() {
+  const url = unifedRedirectUrlSuggestion.value;
+  if (!url) return;
+
+  form.unifed_connect_redirect_url = url;
+  await copyToClipboard(
+    url,
+    t("admin.settings.unifed.redirectUrlSetAndCopied"),
   );
 }
 
@@ -8876,6 +8985,9 @@ async function saveSettings() {
       dingtalk_connect_sync_corp_email_attr_name: form.dingtalk_connect_sync_corp_email_attr_name,
       dingtalk_connect_sync_display_name_attr_name: form.dingtalk_connect_sync_display_name_attr_name,
       dingtalk_connect_sync_dept_attr_name: form.dingtalk_connect_sync_dept_attr_name,
+      unifed_connect_enabled: form.unifed_connect_enabled,
+      unifed_connect_instance_url: form.unifed_connect_instance_url,
+      unifed_connect_redirect_url: form.unifed_connect_redirect_url,
       wechat_connect_enabled: form.wechat_connect_enabled,
       wechat_connect_app_id:
         form.wechat_connect_open_app_id ||

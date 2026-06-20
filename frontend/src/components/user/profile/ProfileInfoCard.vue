@@ -140,6 +140,7 @@
             :user="user"
             :linuxdo-enabled="linuxdoEnabled"
             :dingtalk-enabled="dingtalkEnabled"
+            :unifed-enabled="unifedEnabled"
             :oidc-enabled="oidcEnabled"
             :oidc-provider-name="oidcProviderName"
             :wechat-enabled="wechatEnabled"
@@ -192,6 +193,7 @@ const props = withDefaults(defineProps<{
   user: User | null
   linuxdoEnabled?: boolean
   dingtalkEnabled?: boolean
+  unifedEnabled?: boolean
   oidcEnabled?: boolean
   oidcProviderName?: string
   wechatEnabled?: boolean
@@ -200,6 +202,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   linuxdoEnabled: false,
   dingtalkEnabled: false,
+  unifedEnabled: false,
   oidcEnabled: false,
   oidcProviderName: 'OIDC',
   wechatEnabled: false,
@@ -269,7 +272,8 @@ const providerLabels = computed<Record<UserAuthProvider, string>>(() => ({
   oidc: t('profile.authBindings.providers.oidc', { providerName: props.oidcProviderName }),
   wechat: t('profile.authBindings.providers.wechat'),
   github: 'GitHub',
-  google: 'Google'
+  google: 'Google',
+  unifed: t('profile.authBindings.providers.unifed')
 }))
 
 function formatCurrency(value: number): string {
@@ -283,7 +287,9 @@ function normalizeProvider(value: string): UserAuthProvider | null {
     normalized === 'linuxdo' ||
     normalized === 'wechat' ||
     normalized === 'github' ||
-    normalized === 'google'
+    normalized === 'google' ||
+    normalized === 'dingtalk' ||
+    normalized === 'unifed'
   ) {
     return normalized
   }

@@ -147,6 +147,20 @@ vi.mock("vue-i18n", async () => {
     "admin.settings.authSourceDefaults.sources.oidc.description": "适用于 OIDC 第三方注册的新用户默认配额。",
     "admin.settings.authSourceDefaults.sources.wechat.title": "微信登录",
     "admin.settings.authSourceDefaults.sources.wechat.description": "适用于微信第三方注册的新用户默认配额。",
+    "admin.settings.authSourceDefaults.sources.unifed.title": "Universe Federation 登录",
+    "admin.settings.authSourceDefaults.sources.unifed.description": "适用于 Universe Federation 第三方注册的新用户默认配额。",
+    "admin.settings.unifed.title": "Universe Federation 登录",
+    "admin.settings.unifed.description": "配置 Universe Federation / MiAuth 登录",
+    "admin.settings.unifed.enable": "启用 Universe Federation 登录",
+    "admin.settings.unifed.enableHint": "在登录/注册页面显示 Universe Federation 登录入口",
+    "admin.settings.unifed.instanceUrl": "实例地址",
+    "admin.settings.unifed.instanceUrlPlaceholder": "https://dc.hhhl.cc",
+    "admin.settings.unifed.instanceUrlHint": "MiAuth 实例根地址",
+    "admin.settings.unifed.redirectUrl": "后端回调地址",
+    "admin.settings.unifed.redirectUrlPlaceholder": "https://your-domain.com/api/v1/auth/oauth/unifed/callback",
+    "admin.settings.unifed.redirectUrlHint": "传给 MiAuth 的 callback 地址",
+    "admin.settings.unifed.quickSetCopy": "使用当前站点生成并复制",
+    "admin.settings.unifed.redirectUrlSetAndCopied": "已使用当前站点生成回调地址并复制到剪贴板",
     "admin.settings.authSourceDefaults.grantOnFirstBindLabel": "首次绑定时授权",
     "admin.settings.authSourceDefaults.grantOnFirstBindHint": "已有账号首次绑定该来源时发放默认权益。",
     "admin.settings.authSourceDefaults.defaultSubscriptionsLabel": "默认订阅",
@@ -329,6 +343,9 @@ const baseSettingsResponse = {
   linuxdo_connect_client_id: "",
   linuxdo_connect_client_secret_configured: false,
   linuxdo_connect_redirect_url: "",
+  unifed_connect_enabled: false,
+  unifed_connect_instance_url: "https://dc.hhhl.cc",
+  unifed_connect_redirect_url: "",
   wechat_connect_enabled: true,
   wechat_connect_app_id: "wx-app-id-123",
   wechat_connect_app_secret_configured: true,
@@ -987,6 +1004,35 @@ describe("admin SettingsView wechat connect controls", () => {
         .get('[data-testid="wechat-connect-mp-app-secret"]')
         .attributes("placeholder"),
     ).toContain("密钥已配置");
+  });
+
+  it("renders and submits UniFed settings", async () => {
+    const wrapper = mountView();
+
+    await flushPromises();
+    await openSecurityTab(wrapper);
+
+    expect(wrapper.text()).toContain("Universe Federation 登录");
+
+    await wrapper.get('[data-testid="unifed-connect-enabled"]').setValue(true);
+    await wrapper
+      .get('[data-testid="unifed-connect-instance-url"]')
+      .setValue("https://misskey.example");
+    await wrapper
+      .get('[data-testid="unifed-connect-redirect-url"]')
+      .setValue("https://admin.example.com/api/v1/auth/oauth/unifed/callback");
+    await wrapper.find("form").trigger("submit.prevent");
+    await flushPromises();
+
+    expect(updateSettings).toHaveBeenCalledTimes(1);
+    expect(updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        unifed_connect_enabled: true,
+        unifed_connect_instance_url: "https://misskey.example",
+        unifed_connect_redirect_url:
+          "https://admin.example.com/api/v1/auth/oauth/unifed/callback",
+      }),
+    );
   });
 
   it("collapses auth source defaults until the source is enabled", async () => {
