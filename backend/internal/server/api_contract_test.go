@@ -64,15 +64,16 @@ func TestAPIContracts(t *testing.T) {
 					"balance_notify_threshold_type": "",
 					"balance_notify_threshold": null,
 					"balance_notify_extra_emails": null,
-					"total_recharged": 0,
-					"linuxdo_bound": false,
-					"oidc_bound": false,
-					"wechat_bound": false,
-					"dingtalk_bound": false,
-					"identities": {
-						"email": {
-							"provider": "email",
-							"provider_key": "email",
+						"total_recharged": 0,
+						"linuxdo_bound": false,
+						"oidc_bound": false,
+						"wechat_bound": false,
+						"dingtalk_bound": false,
+						"unifed_bound": false,
+						"identities": {
+							"email": {
+								"provider": "email",
+								"provider_key": "email",
 							"bound": true,
 							"bound_count": 1,
 							"can_bind": false,
@@ -113,6 +114,14 @@ func TestAPIContracts(t *testing.T) {
 							"can_bind": true,
 							"can_unbind": false,
 							"bind_start_path": "/api/v1/auth/oauth/dingtalk/bind/start?intent=bind_current_user&redirect=%2Fsettings%2Fprofile"
+						},
+						"unifed": {
+							"provider": "unifed",
+							"bound": false,
+							"bound_count": 0,
+							"can_bind": true,
+							"can_unbind": false,
+							"bind_start_path": "/api/v1/auth/oauth/unifed/bind/start?intent=bind_current_user&redirect=%2Fsettings%2Fprofile"
 						}
 					},
 					"identity_bindings": {
@@ -159,6 +168,14 @@ func TestAPIContracts(t *testing.T) {
 							"can_bind": true,
 							"can_unbind": false,
 							"bind_start_path": "/api/v1/auth/oauth/dingtalk/bind/start?intent=bind_current_user&redirect=%2Fsettings%2Fprofile"
+						},
+						"unifed": {
+							"provider": "unifed",
+							"bound": false,
+							"bound_count": 0,
+							"can_bind": true,
+							"can_unbind": false,
+							"bind_start_path": "/api/v1/auth/oauth/unifed/bind/start?intent=bind_current_user&redirect=%2Fsettings%2Fprofile"
 						}
 					},
 					"auth_bindings": {
@@ -205,6 +222,14 @@ func TestAPIContracts(t *testing.T) {
 							"can_bind": true,
 							"can_unbind": false,
 							"bind_start_path": "/api/v1/auth/oauth/dingtalk/bind/start?intent=bind_current_user&redirect=%2Fsettings%2Fprofile"
+						},
+						"unifed": {
+							"provider": "unifed",
+							"bound": false,
+							"bound_count": 0,
+							"can_bind": true,
+							"can_unbind": false,
+							"bind_start_path": "/api/v1/auth/oauth/unifed/bind/start?intent=bind_current_user&redirect=%2Fsettings%2Fprofile"
 						}
 					},
 					"run_mode": "standard"
@@ -719,9 +744,12 @@ func TestAPIContracts(t *testing.T) {
 						"dingtalk_connect_sync_dept_attr_key": "dingtalk_department",
 						"dingtalk_connect_sync_dept_attr_name": "钉钉部门",
 						"dingtalk_connect_sync_display_name": false,
-						"dingtalk_connect_sync_display_name_attr_key": "dingtalk_name",
-						"dingtalk_connect_sync_display_name_attr_name": "钉钉姓名",
-						"oidc_connect_enabled": false,
+							"dingtalk_connect_sync_display_name_attr_key": "dingtalk_name",
+							"dingtalk_connect_sync_display_name_attr_name": "钉钉姓名",
+							"unifed_connect_enabled": false,
+							"unifed_connect_instance_url": "https://dc.hhhl.cc",
+							"unifed_connect_redirect_url": "",
+							"oidc_connect_enabled": false,
 						"oidc_connect_provider_name": "OIDC",
 						"oidc_connect_client_id": "",
 						"oidc_connect_client_secret_configured": false,
@@ -799,6 +827,11 @@ func TestAPIContracts(t *testing.T) {
 					"auth_source_default_dingtalk_subscriptions": [],
 					"auth_source_default_dingtalk_grant_on_signup": false,
 					"auth_source_default_dingtalk_grant_on_first_bind": false,
+					"auth_source_default_unifed_balance": 0,
+					"auth_source_default_unifed_concurrency": 5,
+					"auth_source_default_unifed_subscriptions": [],
+					"auth_source_default_unifed_grant_on_signup": false,
+					"auth_source_default_unifed_grant_on_first_bind": false,
 					"force_email_on_third_party_signup": false,
 					"default_concurrency": 5,
 					"default_balance": 1.25,
@@ -810,6 +843,7 @@ func TestAPIContracts(t *testing.T) {
 					"auth_source_default_oidc_platform_quotas": null,
 					"auth_source_default_wechat_platform_quotas": null,
 					"auth_source_default_dingtalk_platform_quotas": null,
+					"auth_source_default_unifed_platform_quotas": null,
 					"affiliate_rebate_rate": 20,
 					"affiliate_rebate_freeze_hours": 0,
 					"affiliate_rebate_duration_days": 0,
@@ -999,6 +1033,9 @@ func TestAPIContracts(t *testing.T) {
 					"dingtalk_connect_sync_display_name": false,
 					"dingtalk_connect_sync_display_name_attr_key": "dingtalk_name",
 					"dingtalk_connect_sync_display_name_attr_name": "钉钉姓名",
+					"unifed_connect_enabled": false,
+					"unifed_connect_instance_url": "https://dc.hhhl.cc",
+					"unifed_connect_redirect_url": "",
 					"oidc_connect_enabled": true,
 					"oidc_connect_provider_name": "ConfigOIDC",
 					"oidc_connect_client_id": "oidc-config-client",
@@ -1052,6 +1089,7 @@ func TestAPIContracts(t *testing.T) {
 					"auth_source_default_oidc_platform_quotas": null,
 					"auth_source_default_wechat_platform_quotas": null,
 					"auth_source_default_dingtalk_platform_quotas": null,
+					"auth_source_default_unifed_platform_quotas": null,
 					"custom_menu_items": [],
 					"custom_endpoints": [],
 					"default_concurrency": 0,
@@ -1182,6 +1220,11 @@ func TestAPIContracts(t *testing.T) {
 					"auth_source_default_dingtalk_subscriptions": [],
 					"auth_source_default_dingtalk_grant_on_signup": false,
 					"auth_source_default_dingtalk_grant_on_first_bind": false,
+					"auth_source_default_unifed_balance": 0,
+					"auth_source_default_unifed_concurrency": 5,
+					"auth_source_default_unifed_subscriptions": [],
+					"auth_source_default_unifed_grant_on_signup": false,
+					"auth_source_default_unifed_grant_on_first_bind": false,
 					"force_email_on_third_party_signup": false,
 					"allow_user_view_error_requests": false
 				}
