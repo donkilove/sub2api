@@ -1675,6 +1675,13 @@ func (h *AuthHandler) bindPendingOAuthLogin(c *gin.Context, provider string) {
 	}
 
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+	h.recordSecurityEvent(c, service.UserSecurityEventInput{
+		UserID:    user.ID,
+		Email:     user.Email,
+		EventType: service.UserSecurityEventOAuthBindLogin,
+		Provider:  strings.TrimSpace(session.ProviderType),
+		Success:   true,
+	})
 	// bindPendingOAuthLogin = 绑定已有账户登录，不动 users.username（用户已有自己的名字）
 	h.maybeSyncDingTalkAfterLogin(c.Request.Context(), session, user.ID)
 	tokenPair, err := h.authService.GenerateTokenPair(c.Request.Context(), user, "")
@@ -1876,6 +1883,13 @@ func (h *AuthHandler) createPendingOAuthAccount(c *gin.Context, provider string)
 
 	h.authService.ApplyOAuthSignupPromoCode(c.Request.Context(), user.ID, pendingOAuthPromoCode(session))
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+	h.recordSecurityEvent(c, service.UserSecurityEventInput{
+		UserID:    user.ID,
+		Email:     user.Email,
+		EventType: service.UserSecurityEventOAuthRegister,
+		Provider:  strings.TrimSpace(session.ProviderType),
+		Success:   true,
+	})
 	// createPendingOAuthAccount = 注册新账户，需要把钉钉昵称同步到 users.username 作为初始值
 	h.maybeSyncDingTalkAfterRegistration(c.Request.Context(), session, user.ID)
 	clearCookies()
@@ -2029,6 +2043,13 @@ func (h *AuthHandler) ExchangePendingOAuthCompletion(c *gin.Context) {
 			return
 		}
 		h.authService.RecordSuccessfulLogin(c.Request.Context(), loginUser.ID)
+		h.recordSecurityEvent(c, service.UserSecurityEventInput{
+			UserID:    loginUser.ID,
+			Email:     loginUser.Email,
+			EventType: service.UserSecurityEventOAuthLogin,
+			Provider:  strings.TrimSpace(session.ProviderType),
+			Success:   true,
+		})
 		payload["access_token"] = tokenPair.AccessToken
 		payload["refresh_token"] = tokenPair.RefreshToken
 		payload["expires_in"] = tokenPair.ExpiresIn

@@ -781,6 +781,7 @@ func (h *AuthHandler) CompleteDingTalkOAuthRegistration(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	securityEventBaseline := time.Now().UTC()
 	tokenPair, user, err := h.authService.LoginOrRegisterOAuthWithTokenPairAndPromoCode(
 		c.Request.Context(),
 		email,
@@ -808,6 +809,13 @@ func (h *AuthHandler) CompleteDingTalkOAuthRegistration(c *gin.Context) {
 		})
 	}
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+	h.recordSecurityEvent(c, service.UserSecurityEventInput{
+		UserID:    user.ID,
+		Email:     user.Email,
+		EventType: oauthSecurityEventType(user, securityEventBaseline),
+		Provider:  "dingtalk",
+		Success:   true,
+	})
 	clearOAuthPendingSessionCookie(c, secureCookie)
 	clearOAuthPendingBrowserCookie(c, secureCookie)
 

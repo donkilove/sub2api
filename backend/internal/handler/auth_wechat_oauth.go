@@ -550,6 +550,7 @@ func (h *AuthHandler) CompleteWeChatOAuthRegistration(c *gin.Context) {
 		return
 	}
 
+	securityEventBaseline := time.Now().UTC()
 	tokenPair, user, err := h.authService.LoginOrRegisterOAuthWithTokenPairAndPromoCode(
 		c.Request.Context(),
 		email,
@@ -576,6 +577,13 @@ func (h *AuthHandler) CompleteWeChatOAuthRegistration(c *gin.Context) {
 		return
 	}
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+	h.recordSecurityEvent(c, service.UserSecurityEventInput{
+		UserID:    user.ID,
+		Email:     user.Email,
+		EventType: oauthSecurityEventType(user, securityEventBaseline),
+		Provider:  "wechat",
+		Success:   true,
+	})
 	if _, err := pendingSvc.ConsumeBrowserSession(c.Request.Context(), sessionToken, browserSessionKey); err != nil {
 		clearOAuthPendingSessionCookie(c, secureCookie)
 		clearOAuthPendingBrowserCookie(c, secureCookie)

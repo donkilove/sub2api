@@ -687,6 +687,7 @@ func (h *AuthHandler) CompleteOIDCOAuthRegistration(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	securityEventBaseline := time.Now().UTC()
 	tokenPair, user, err := h.authService.LoginOrRegisterOAuthWithTokenPairAndPromoCode(
 		c.Request.Context(),
 		email,
@@ -705,6 +706,13 @@ func (h *AuthHandler) CompleteOIDCOAuthRegistration(c *gin.Context) {
 		return
 	}
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+	h.recordSecurityEvent(c, service.UserSecurityEventInput{
+		UserID:    user.ID,
+		Email:     user.Email,
+		EventType: oauthSecurityEventType(user, securityEventBaseline),
+		Provider:  "oidc",
+		Success:   true,
+	})
 	clearOAuthPendingSessionCookie(c, secureCookie)
 	clearOAuthPendingBrowserCookie(c, secureCookie)
 

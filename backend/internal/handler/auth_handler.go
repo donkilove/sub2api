@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/handler/dto"
@@ -27,6 +28,7 @@ type AuthHandler struct {
 	redeemService        *service.RedeemService
 	totpService          *service.TotpService
 	userAttributeService *service.UserAttributeService
+	securityEventService *service.UserSecurityEventService
 
 	dingTalkClientInstance *DingTalkClient
 	dingTalkClientMu       sync.Mutex
@@ -44,6 +46,50 @@ func NewAuthHandler(cfg *config.Config, authService *service.AuthService, userSe
 		totpService:          totpService,
 		userAttributeService: userAttributeService,
 	}
+}
+
+// SetSecurityEventService injects best-effort auth event recording without
+// changing the existing constructor used by tests.
+func (h *AuthHandler) SetSecurityEventService(svc *service.UserSecurityEventService) {
+	if h == nil {
+		return
+	}
+	h.securityEventService = svc
+}
+
+func (h *AuthHandler) recordSecurityEvent(c *gin.Context, input service.UserSecurityEventInput) {
+	if h == nil || h.securityEventService == nil || c == nil {
+		return
+	}
+	if input.IPAddress == "" {
+		input.IPAddress = ip.GetClientIP(c)
+	}
+	if input.UserAgent == "" && c.Request != nil {
+		input.UserAgent = c.Request.UserAgent()
+	}
+	if err := h.securityEventService.Record(c.Request.Context(), input); err != nil {
+		slog.Warn("record user security event failed",
+			"event_type", input.EventType,
+			"provider", input.Provider,
+			"user_id", input.UserID,
+			"error", err)
+	}
+}
+
+func userCreatedNear(user *service.User, baseline time.Time) bool {
+	if user == nil || user.CreatedAt.IsZero() || baseline.IsZero() {
+		return false
+	}
+	createdAt := user.CreatedAt.UTC()
+	startedAt := baseline.UTC()
+	return !createdAt.Before(startedAt.Add(-2*time.Second)) && !createdAt.After(time.Now().UTC().Add(2*time.Minute))
+}
+
+func oauthSecurityEventType(user *service.User, baseline time.Time) string {
+	if userCreatedNear(user, baseline) {
+		return service.UserSecurityEventOAuthRegister
+	}
+	return service.UserSecurityEventOAuthLogin
 }
 
 // RegisterRequest represents the registration request payload
@@ -181,10 +227,24 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		req.AffCode,
 	)
 	if err != nil {
+		h.recordSecurityEvent(c, service.UserSecurityEventInput{
+			Email:     req.Email,
+			EventType: service.UserSecurityEventRegister,
+			Provider:  "email",
+			Success:   false,
+			Reason:    infraerrors.Reason(err),
+		})
 		response.ErrorFrom(c, err)
 		return
 	}
 
+	h.recordSecurityEvent(c, service.UserSecurityEventInput{
+		UserID:    user.ID,
+		Email:     user.Email,
+		EventType: service.UserSecurityEventRegister,
+		Provider:  "email",
+		Success:   true,
+	})
 	h.respondWithTokenPair(c, user)
 }
 
@@ -232,12 +292,27 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	token, user, err := h.authService.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
+		h.recordSecurityEvent(c, service.UserSecurityEventInput{
+			Email:     req.Email,
+			EventType: service.UserSecurityEventLogin,
+			Provider:  "email",
+			Success:   false,
+			Reason:    infraerrors.Reason(err),
+		})
 		response.ErrorFrom(c, err)
 		return
 	}
 	_ = token // token 由 authService.Login 返回但此处由 respondWithTokenPair 重新生成
 
 	if err := h.ensureBackendModeAllowsUser(c.Request.Context(), user); err != nil {
+		h.recordSecurityEvent(c, service.UserSecurityEventInput{
+			UserID:    user.ID,
+			Email:     user.Email,
+			EventType: service.UserSecurityEventLogin,
+			Provider:  "email",
+			Success:   false,
+			Reason:    infraerrors.Reason(err),
+		})
 		response.ErrorFrom(c, err)
 		return
 	}
@@ -260,6 +335,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+	h.recordSecurityEvent(c, service.UserSecurityEventInput{
+		UserID:    user.ID,
+		Email:     user.Email,
+		EventType: service.UserSecurityEventLogin,
+		Provider:  "email",
+		Success:   true,
+	})
 
 	h.respondWithTokenPair(c, user)
 }
@@ -382,6 +464,13 @@ func (h *AuthHandler) Login2FA(c *gin.Context) {
 		clearOAuthPendingSessionCookie(c, secureCookie)
 		clearOAuthPendingBrowserCookie(c, secureCookie)
 		h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+		h.recordSecurityEvent(c, service.UserSecurityEventInput{
+			UserID:    user.ID,
+			Email:     user.Email,
+			EventType: service.UserSecurityEventOAuthBindLogin,
+			Provider:  "oauth",
+			Success:   true,
+		})
 
 		user, err = h.userService.GetByID(c.Request.Context(), session.UserID)
 		if err != nil {
@@ -395,6 +484,13 @@ func (h *AuthHandler) Login2FA(c *gin.Context) {
 
 	if session.PendingOAuthBind == nil {
 		h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+		h.recordSecurityEvent(c, service.UserSecurityEventInput{
+			UserID:    user.ID,
+			Email:     user.Email,
+			EventType: service.UserSecurityEventLogin2FA,
+			Provider:  "email",
+			Success:   true,
+		})
 	}
 
 	h.respondWithTokenPair(c, user)

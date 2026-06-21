@@ -393,6 +393,7 @@ export default {
     affiliateTransferRecords: '提取记录',
     profile: '个人资料',
     users: '用户管理',
+    userRisk: '用户风控',
     groups: '分组管理',
     channels: '渠道管理',
     availableChannels: '可用渠道',
@@ -1529,6 +1530,11 @@ export default {
     serverLoad: {
       title: '服务器负载',
       description: '实时查看 CPU、内存、硬盘、Docker、协程与网络状态'
+    },
+
+    userRisk: {
+      title: '用户风控中心',
+      description: '按用户聚合请求、错误、并发与来源信号，定位异常使用风险'
     },
 
     backup: {

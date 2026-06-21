@@ -68,6 +68,9 @@ func RegisterAdminRoutes(
 		// 运维监控（Ops）
 		registerOpsRoutes(admin, h)
 
+		// 用户风控中心
+		registerUserRiskRoutes(admin, h)
+
 		// 服务器负载
 		registerServerLoadRoutes(admin, h)
 
@@ -225,6 +228,14 @@ func registerOpsRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 
 func registerServerLoadRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	admin.GET("/server-load", h.Admin.Ops.GetServerLoad)
+}
+
+func registerUserRiskRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	userRisk := admin.Group("/user-risk")
+	{
+		userRisk.GET("", h.Admin.UserRisk.List)
+		userRisk.GET("/:id", h.Admin.UserRisk.Get)
+	}
 }
 
 func registerDashboardRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

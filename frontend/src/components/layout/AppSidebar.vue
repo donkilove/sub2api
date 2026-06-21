@@ -722,6 +722,7 @@ const adminNavItems = computed((): NavItem[] => {
     { path: '/admin/limits', label: t('nav.limitCenter'), icon: ShieldIcon, hideInSimpleMode: true },
     { path: '/admin/error-policies', label: t('nav.errorPolicies'), icon: ShieldIcon, hideInSimpleMode: true },
     { path: '/admin/users', label: t('nav.users'), icon: UsersIcon, hideInSimpleMode: true },
+    { path: '/admin/user-risk', label: t('nav.userRisk'), icon: ShieldIcon, hideInSimpleMode: true },
     { path: '/admin/groups', label: t('nav.groups'), icon: FolderIcon, hideInSimpleMode: true },
     {
       path: '/admin/channels',

@@ -331,6 +331,7 @@ func (h *AuthHandler) LinuxDoOAuthCallback(c *gin.Context) {
 			redirectOAuthError(c, frontendCallback, "session_error", infraerrors.Reason(err), infraerrors.Message(err))
 			return
 		}
+		securityEventBaseline := time.Now().UTC()
 		tokenPair, user, err := h.authService.LoginOrRegisterOAuthWithTokenPairAndPromoCode(
 			c.Request.Context(),
 			email,
@@ -363,6 +364,13 @@ func (h *AuthHandler) LinuxDoOAuthCallback(c *gin.Context) {
 				return
 			}
 			h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+			h.recordSecurityEvent(c, service.UserSecurityEventInput{
+				UserID:    user.ID,
+				Email:     user.Email,
+				EventType: oauthSecurityEventType(user, securityEventBaseline),
+				Provider:  "linuxdo",
+				Success:   true,
+			})
 			clearOAuthPendingSessionCookie(c, secureCookie)
 			clearOAuthPendingBrowserCookie(c, secureCookie)
 			redirectOAuthTokenPair(c, frontendCallback, tokenPair, redirectTo)
@@ -571,6 +579,7 @@ func (h *AuthHandler) CompleteLinuxDoOAuthRegistration(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	securityEventBaseline := time.Now().UTC()
 	tokenPair, user, err := h.authService.LoginOrRegisterOAuthWithTokenPairAndPromoCode(
 		c.Request.Context(),
 		email,
@@ -589,6 +598,13 @@ func (h *AuthHandler) CompleteLinuxDoOAuthRegistration(c *gin.Context) {
 		return
 	}
 	h.authService.RecordSuccessfulLogin(c.Request.Context(), user.ID)
+	h.recordSecurityEvent(c, service.UserSecurityEventInput{
+		UserID:    user.ID,
+		Email:     user.Email,
+		EventType: oauthSecurityEventType(user, securityEventBaseline),
+		Provider:  "linuxdo",
+		Success:   true,
+	})
 	clearOAuthPendingSessionCookie(c, secureCookie)
 	clearOAuthPendingBrowserCookie(c, secureCookie)
 

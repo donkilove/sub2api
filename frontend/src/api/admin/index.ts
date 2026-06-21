@@ -33,6 +33,7 @@ import affiliatesAPI from './affiliates'
 import riskControlAPI from './riskControl'
 import adminComplianceAPI from './compliance'
 import serverLoadAPI from './serverLoad'
+import userRiskAPI from './userRisk'
 
 /**
  * Unified admin API object for convenient access
@@ -67,7 +68,8 @@ export const adminAPI = {
   affiliates: affiliatesAPI,
   riskControl: riskControlAPI,
   compliance: adminComplianceAPI,
-  serverLoad: serverLoadAPI
+  serverLoad: serverLoadAPI,
+  userRisk: userRiskAPI
 }
 
 export {
@@ -100,7 +102,8 @@ export {
   affiliatesAPI,
   riskControlAPI,
   adminComplianceAPI,
-  serverLoadAPI
+  serverLoadAPI,
+  userRiskAPI
 }
 
 export default adminAPI
@@ -117,3 +120,11 @@ export type {
 export type { BackupAgentHealth, DataManagementConfig } from './dataManagement'
 export type { TLSFingerprintProfile, CreateProfileRequest, UpdateProfileRequest } from './tlsFingerprintProfile'
 export type { ContentModerationConfig, ContentModerationLog, ModerationMode } from './riskControl'
+export type {
+  UserRiskDetail,
+  UserRiskItem,
+  UserRiskLevel,
+  UserRiskListParams,
+  UserRiskListResponse,
+  UserRiskRecentError
+} from './userRisk'

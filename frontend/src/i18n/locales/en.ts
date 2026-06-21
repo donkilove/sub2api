@@ -393,6 +393,7 @@ export default {
     affiliateTransferRecords: 'Transfer Records',
     profile: 'Profile',
     users: 'Users',
+    userRisk: 'User Risk',
     groups: 'Groups',
     channels: 'Channels',
     availableChannels: 'Available Channels',
@@ -1508,6 +1509,11 @@ export default {
     serverLoad: {
       title: 'Server Load',
       description: 'Realtime CPU, memory, disk, Docker, goroutine, and network status'
+    },
+
+    userRisk: {
+      title: 'User Risk Center',
+      description: 'Aggregate user requests, errors, concurrency, and source signals for risk diagnosis'
     },
 
     backup: {
