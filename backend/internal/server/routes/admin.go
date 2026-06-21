@@ -68,6 +68,9 @@ func RegisterAdminRoutes(
 		// 运维监控（Ops）
 		registerOpsRoutes(admin, h)
 
+		// 服务器负载
+		registerServerLoadRoutes(admin, h)
+
 		// 系统管理
 		registerSystemRoutes(admin, h)
 
@@ -218,6 +221,10 @@ func registerOpsRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		ops.GET("/dashboard/error-distribution", h.Admin.Ops.GetDashboardErrorDistribution)
 		ops.GET("/dashboard/openai-token-stats", h.Admin.Ops.GetDashboardOpenAITokenStats)
 	}
+}
+
+func registerServerLoadRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	admin.GET("/server-load", h.Admin.Ops.GetServerLoad)
 }
 
 func registerDashboardRoutes(admin *gin.RouterGroup, h *handler.Handlers) {

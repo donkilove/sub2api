@@ -401,6 +401,7 @@ export default {
     proxies: 'IP管理',
     redeemCodes: '兑换码',
     ops: '运维监控',
+    serverLoad: '服务器负载',
     limitCenter: '限流中心',
     promoCodes: '优惠码',
     settings: '系统设置',
@@ -1522,6 +1523,11 @@ export default {
       systemSettings: '系统设置',
       configureSystem: '配置系统设置',
       failedToLoad: '加载仪表盘数据失败'
+    },
+
+    serverLoad: {
+      title: '服务器负载',
+      description: '实时查看 CPU、内存、硬盘、Docker、协程与网络状态'
     },
 
     backup: {

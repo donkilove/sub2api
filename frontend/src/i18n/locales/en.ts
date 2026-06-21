@@ -401,6 +401,7 @@ export default {
     proxies: 'Proxies',
     redeemCodes: 'Redeem Codes',
     ops: 'Ops',
+    serverLoad: 'Server Load',
     limitCenter: 'Limit Center',
     promoCodes: 'Promo Codes',
     settings: 'Settings',
@@ -1501,6 +1502,11 @@ export default {
       requestsShort: 'Req',
       tokensShort: 'Tok',
       failedToLoad: 'Failed to load dashboard statistics'
+    },
+
+    serverLoad: {
+      title: 'Server Load',
+      description: 'Realtime CPU, memory, disk, Docker, goroutine, and network status'
     },
 
     backup: {

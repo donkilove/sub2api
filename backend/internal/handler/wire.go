@@ -95,6 +95,13 @@ func ProvideAdminSettingHandler(settingService *service.SettingService, emailSer
 	return h
 }
 
+// ProvideOpsHandler creates admin.OpsHandler with realtime server load support.
+func ProvideOpsHandler(opsService *service.OpsService, serverLoadService *service.ServerLoadService) *admin.OpsHandler {
+	h := admin.NewOpsHandler(opsService)
+	h.SetServerLoadService(serverLoadService)
+	return h
+}
+
 // ProvideHandlers creates the Handlers struct
 func ProvideHandlers(
 	authHandler *AuthHandler,
@@ -171,7 +178,7 @@ var ProviderSet = wire.NewSet(
 	admin.NewRedeemHandler,
 	admin.NewPromoHandler,
 	ProvideAdminSettingHandler,
-	admin.NewOpsHandler,
+	ProvideOpsHandler,
 	ProvideSystemHandler,
 	admin.NewSubscriptionHandler,
 	admin.NewUsageHandler,

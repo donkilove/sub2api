@@ -413,6 +413,18 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/server-load',
+    name: 'AdminServerLoad',
+    component: () => import('@/views/admin/ServerLoadView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Server Load',
+      titleKey: 'admin.serverLoad.title',
+      descriptionKey: 'admin.serverLoad.description'
+    }
+  },
+  {
     path: '/admin/limits',
     name: 'AdminLimitCenter',
     component: () => import('@/views/admin/LimitCenterView.vue'),
