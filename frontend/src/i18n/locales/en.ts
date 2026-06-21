@@ -403,6 +403,7 @@ export default {
     ops: 'Ops',
     serverLoad: 'Server Load',
     limitCenter: 'Limit Center',
+    errorPolicies: 'Error Policies',
     promoCodes: 'Promo Codes',
     settings: 'Settings',
     myAccount: 'My Account',

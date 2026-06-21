@@ -403,6 +403,7 @@ export default {
     ops: '运维监控',
     serverLoad: '服务器负载',
     limitCenter: '限流中心',
+    errorPolicies: '错误治理',
     promoCodes: '优惠码',
     settings: '系统设置',
     myAccount: '我的账户',
