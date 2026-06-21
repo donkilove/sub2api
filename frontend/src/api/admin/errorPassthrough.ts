@@ -28,6 +28,42 @@ export interface ErrorPassthroughRule {
 }
 
 /**
+ * Upstream error policy shown in the admin strategy list.
+ */
+export interface UpstreamErrorPolicy {
+  category: string
+  label: string
+  description: string
+  default_status_code: number
+  default_error_type: string
+  default_message: string
+  default_retryable: boolean
+  custom_enabled: boolean
+  status_code?: number | null
+  error_type?: string
+  message?: string
+  retry_enabled: boolean
+  max_retries: number
+  note?: string
+  effective_status_code: number
+  effective_error_type: string
+  effective_message: string
+}
+
+/**
+ * Update upstream error policy request.
+ */
+export interface UpdateUpstreamErrorPolicyRequest {
+  custom_enabled?: boolean
+  status_code?: number | null
+  error_type?: string
+  message?: string
+  retry_enabled?: boolean
+  max_retries?: number
+  note?: string
+}
+
+/**
  * Create rule request
  */
 export interface CreateRuleRequest {
@@ -125,13 +161,41 @@ export async function toggleEnabled(id: number, enabled: boolean): Promise<Error
   return update(id, { enabled })
 }
 
+/**
+ * List all upstream error policies.
+ * @returns Default policies merged with saved overrides
+ */
+export async function listPolicies(): Promise<UpstreamErrorPolicy[]> {
+  const { data } = await apiClient.get<UpstreamErrorPolicy[]>('/admin/error-passthrough-rules/policies')
+  return data
+}
+
+/**
+ * Update one upstream error policy.
+ * @param category - Error category key
+ * @param updates - Policy override fields
+ * @returns Updated effective policy
+ */
+export async function updatePolicy(
+  category: string,
+  updates: UpdateUpstreamErrorPolicyRequest
+): Promise<UpstreamErrorPolicy> {
+  const { data } = await apiClient.put<UpstreamErrorPolicy>(
+    `/admin/error-passthrough-rules/policies/${encodeURIComponent(category)}`,
+    updates
+  )
+  return data
+}
+
 export const errorPassthroughAPI = {
   list,
   getById,
   create,
   update,
   delete: deleteRule,
-  toggleEnabled
+  toggleEnabled,
+  listPolicies,
+  updatePolicy
 }
 
 export default errorPassthroughAPI

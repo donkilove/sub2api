@@ -600,6 +600,8 @@ func registerErrorPassthroughRoutes(admin *gin.RouterGroup, h *handler.Handlers)
 	rules := admin.Group("/error-passthrough-rules")
 	{
 		rules.GET("", h.Admin.ErrorPassthrough.List)
+		rules.GET("/policies", h.Admin.ErrorPassthrough.ListPolicies)
+		rules.PUT("/policies/:category", h.Admin.ErrorPassthrough.UpdatePolicy)
 		rules.GET("/:id", h.Admin.ErrorPassthrough.GetByID)
 		rules.POST("", h.Admin.ErrorPassthrough.Create)
 		rules.PUT("/:id", h.Admin.ErrorPassthrough.Update)

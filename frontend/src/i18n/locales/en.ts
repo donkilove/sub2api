@@ -6585,10 +6585,11 @@ export default {
 
     // Error Passthrough Rules
     errorPassthrough: {
-      title: 'Error Passthrough Rules',
-      description: 'Configure how upstream errors are returned to clients',
+      title: 'Upstream Error Policies',
+      description: 'Configure upstream error messages, retry behavior, and advanced passthrough rules',
       createRule: 'Create Rule',
       editRule: 'Edit Rule',
+      editPolicy: 'Edit Error Policy',
       deleteRule: 'Delete Rule',
       noRules: 'No rules configured',
       createFirstRule: 'Create your first error passthrough rule',
@@ -6598,6 +6599,36 @@ export default {
       code: 'Code',
       body: 'Body',
       skipMonitoring: 'Skip Monitoring',
+      retryEnabled: 'Retry enabled',
+      retryDisabled: 'Retry available',
+      notRetryable: 'Not retryable',
+      maxRetries: 'Max {count}',
+
+      tabs: {
+        policies: 'Policies',
+        rules: 'Advanced Rules'
+      },
+
+      policyColumns: {
+        category: 'Category',
+        defaultResponse: 'Default Response',
+        effectiveResponse: 'Effective Response',
+        retry: 'Retry'
+      },
+
+      policyForm: {
+        customEnabled: 'Customize the error returned to users',
+        statusCode: 'Response status',
+        errorType: 'Error type',
+        message: 'Error message',
+        retryEnabled: 'Retry or switch account before returning error',
+        maxRetries: 'Same-account retries',
+        notRetryableHint: 'This error usually requires user or admin action and cannot be retried automatically.',
+        note: 'Note',
+        notePlaceholder: 'Optional: describe when this policy should be used',
+        invalidStatusCode: 'Status code must be between 400 and 599',
+        responseRequired: 'Please fill in error type and message'
+      },
 
       // Columns
       columns: {
@@ -6652,9 +6683,12 @@ export default {
       conditionsRequired: 'Please configure at least one error code or keyword',
       ruleCreated: 'Rule created successfully',
       ruleUpdated: 'Rule updated successfully',
+      policyUpdated: 'Policy saved successfully',
       ruleDeleted: 'Rule deleted successfully',
       deleteConfirm: 'Are you sure you want to delete rule "{name}"?',
+      failedToLoadPolicies: 'Failed to load policies',
       failedToLoad: 'Failed to load rules',
+      failedToSavePolicy: 'Failed to save policy',
       failedToSave: 'Failed to save rule',
       failedToDelete: 'Failed to delete rule',
       failedToToggle: 'Failed to toggle status'

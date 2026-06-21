@@ -76,14 +76,19 @@ func (s *FailoverState) HandleFailoverError(
 		s.ForceCacheBilling = true
 	}
 
+	sameAccountRetryLimit := maxSameAccountRetries
+	if failoverErr.MaxSameAccountRetries > 0 {
+		sameAccountRetryLimit = failoverErr.MaxSameAccountRetries
+	}
+
 	// 同账号重试：对 RetryableOnSameAccount 的临时性错误，先在同一账号上重试
-	if failoverErr.RetryableOnSameAccount && s.SameAccountRetryCount[accountID] < maxSameAccountRetries {
+	if failoverErr.RetryableOnSameAccount && s.SameAccountRetryCount[accountID] < sameAccountRetryLimit {
 		s.SameAccountRetryCount[accountID]++
 		logger.FromContext(ctx).Warn("gateway.failover_same_account_retry",
 			zap.Int64("account_id", accountID),
 			zap.Int("upstream_status", failoverErr.StatusCode),
 			zap.Int("same_account_retry_count", s.SameAccountRetryCount[accountID]),
-			zap.Int("same_account_retry_max", maxSameAccountRetries),
+			zap.Int("same_account_retry_max", sameAccountRetryLimit),
 		)
 		if !sleepWithContext(ctx, sameAccountRetryDelay) {
 			return FailoverCanceled

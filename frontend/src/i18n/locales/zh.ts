@@ -6740,10 +6740,11 @@ export default {
 
     // Error Passthrough Rules
     errorPassthrough: {
-      title: '错误透传规则',
-      description: '配置上游错误如何返回给客户端',
+      title: '上游错误策略',
+      description: '配置上游错误提示、重试策略和高级透传规则',
       createRule: '创建规则',
       editRule: '编辑规则',
+      editPolicy: '编辑错误策略',
       deleteRule: '删除规则',
       noRules: '暂无规则',
       createFirstRule: '创建第一条错误透传规则',
@@ -6753,6 +6754,36 @@ export default {
       code: '状态码',
       body: '消息体',
       skipMonitoring: '跳过监控',
+      retryEnabled: '已开启重试',
+      retryDisabled: '可开启重试',
+      notRetryable: '不可重试',
+      maxRetries: '最多 {count} 次',
+
+      tabs: {
+        policies: '策略列表',
+        rules: '高级规则'
+      },
+
+      policyColumns: {
+        category: '错误分类',
+        defaultResponse: '默认响应',
+        effectiveResponse: '当前生效',
+        retry: '重试'
+      },
+
+      policyForm: {
+        customEnabled: '自定义返回给用户的错误提示',
+        statusCode: '返回状态码',
+        errorType: '错误类型',
+        message: '错误提示',
+        retryEnabled: '出错时先重试/切换账号',
+        maxRetries: '同账号重试次数',
+        notRetryableHint: '该错误通常需要用户或管理员处理，不能开启自动重试。',
+        note: '备注',
+        notePlaceholder: '可选：说明这个策略的使用场景',
+        invalidStatusCode: '状态码必须在 400 到 599 之间',
+        responseRequired: '请填写错误类型和错误提示'
+      },
 
       // Columns
       columns: {
@@ -6807,9 +6838,12 @@ export default {
       conditionsRequired: '请至少配置一个错误码或关键词',
       ruleCreated: '规则创建成功',
       ruleUpdated: '规则更新成功',
+      policyUpdated: '策略保存成功',
       ruleDeleted: '规则删除成功',
       deleteConfirm: '确定要删除规则 "{name}" 吗？',
+      failedToLoadPolicies: '加载策略失败',
       failedToLoad: '加载规则失败',
+      failedToSavePolicy: '保存策略失败',
       failedToSave: '保存规则失败',
       failedToDelete: '删除规则失败',
       failedToToggle: '切换状态失败'

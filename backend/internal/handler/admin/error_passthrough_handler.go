@@ -11,12 +11,16 @@ import (
 
 // ErrorPassthroughHandler 处理错误透传规则的 HTTP 请求
 type ErrorPassthroughHandler struct {
-	service *service.ErrorPassthroughService
+	service        *service.ErrorPassthroughService
+	settingService *service.SettingService
 }
 
 // NewErrorPassthroughHandler 创建错误透传规则处理器
-func NewErrorPassthroughHandler(service *service.ErrorPassthroughService) *ErrorPassthroughHandler {
-	return &ErrorPassthroughHandler{service: service}
+func NewErrorPassthroughHandler(
+	service *service.ErrorPassthroughService,
+	settingService *service.SettingService,
+) *ErrorPassthroughHandler {
+	return &ErrorPassthroughHandler{service: service, settingService: settingService}
 }
 
 // CreateErrorPassthroughRuleRequest 创建规则请求
@@ -51,6 +55,37 @@ type UpdateErrorPassthroughRuleRequest struct {
 	CustomMessage   *string  `json:"custom_message"`
 	SkipMonitoring  *bool    `json:"skip_monitoring"`
 	Description     *string  `json:"description"`
+}
+
+// ListPolicies 获取所有上游错误策略。
+// GET /api/v1/admin/error-passthrough-rules/policies
+func (h *ErrorPassthroughHandler) ListPolicies(c *gin.Context) {
+	policies, err := h.settingService.ListUpstreamErrorPolicies(c.Request.Context())
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, policies)
+}
+
+// UpdatePolicy 更新单个上游错误策略。
+// PUT /api/v1/admin/error-passthrough-rules/policies/:category
+func (h *ErrorPassthroughHandler) UpdatePolicy(c *gin.Context) {
+	var req service.UpstreamErrorPolicyUpdate
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request: "+err.Error())
+		return
+	}
+	if err := h.settingService.UpdateUpstreamErrorPolicy(c.Request.Context(), c.Param("category"), req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+	policy, ok := h.settingService.ResolveUpstreamErrorPolicy(c.Request.Context(), c.Param("category"))
+	if !ok {
+		response.NotFound(c, "Policy not found")
+		return
+	}
+	response.Success(c, policy)
 }
 
 // List 获取所有规则

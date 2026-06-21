@@ -11,12 +11,142 @@
         <p class="text-sm text-gray-500 dark:text-gray-400">
           {{ t('admin.errorPassthrough.description') }}
         </p>
-        <button @click="showCreateModal = true" class="btn btn-primary btn-sm">
+        <button v-if="activeTab === 'rules'" @click="showCreateModal = true" class="btn btn-primary btn-sm">
           <Icon name="plus" size="sm" class="mr-1" />
           {{ t('admin.errorPassthrough.createRule') }}
         </button>
       </div>
 
+      <div class="inline-flex rounded-lg bg-gray-100 p-1 dark:bg-dark-700">
+        <button
+          type="button"
+          :class="[
+            'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            activeTab === 'policies'
+              ? 'bg-white text-gray-900 shadow-sm dark:bg-dark-600 dark:text-white'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+          ]"
+          @click="activeTab = 'policies'"
+        >
+          {{ t('admin.errorPassthrough.tabs.policies') }}
+        </button>
+        <button
+          type="button"
+          :class="[
+            'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            activeTab === 'rules'
+              ? 'bg-white text-gray-900 shadow-sm dark:bg-dark-600 dark:text-white'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+          ]"
+          @click="activeTab = 'rules'"
+        >
+          {{ t('admin.errorPassthrough.tabs.rules') }}
+        </button>
+      </div>
+
+      <div v-if="activeTab === 'policies'" class="space-y-4">
+        <div v-if="policiesLoading" class="flex items-center justify-center py-8">
+          <Icon name="refresh" size="lg" class="animate-spin text-gray-400" />
+        </div>
+
+        <div v-else class="max-h-[34rem] overflow-auto rounded-lg border border-gray-200 dark:border-dark-600">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-dark-700">
+            <thead class="sticky top-0 bg-gray-50 dark:bg-dark-700">
+              <tr>
+                <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                  {{ t('admin.errorPassthrough.policyColumns.category') }}
+                </th>
+                <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                  {{ t('admin.errorPassthrough.policyColumns.defaultResponse') }}
+                </th>
+                <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                  {{ t('admin.errorPassthrough.policyColumns.effectiveResponse') }}
+                </th>
+                <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                  {{ t('admin.errorPassthrough.policyColumns.retry') }}
+                </th>
+                <th class="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                  {{ t('admin.errorPassthrough.columns.actions') }}
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-dark-700 dark:bg-dark-800">
+              <tr v-for="policy in policies" :key="policy.category" class="hover:bg-gray-50 dark:hover:bg-dark-700">
+                <td class="px-3 py-3 align-top">
+                  <div class="flex items-start gap-2">
+                    <span
+                      :class="[
+                        'mt-0.5 inline-flex h-2 w-2 flex-shrink-0 rounded-full',
+                        policy.custom_enabled || policy.retry_enabled ? 'bg-primary-500' : 'bg-gray-300 dark:bg-dark-500'
+                      ]"
+                    />
+                    <div>
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ policy.label }}
+                      </div>
+                      <div class="mt-0.5 font-mono text-xs text-gray-500 dark:text-gray-400">
+                        {{ policy.category }}
+                      </div>
+                      <div class="mt-1 max-w-xs text-xs text-gray-500 dark:text-gray-400">
+                        {{ policy.description }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <div class="space-y-1 text-xs">
+                    <div>
+                      <span class="badge badge-gray">{{ policy.default_status_code }}</span>
+                    </div>
+                    <div class="font-mono text-gray-700 dark:text-gray-300">{{ policy.default_error_type }}</div>
+                    <div class="max-w-xs text-gray-500 dark:text-gray-400">{{ policy.default_message }}</div>
+                  </div>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <div class="space-y-1 text-xs">
+                    <div class="flex flex-wrap items-center gap-1">
+                      <span :class="policy.custom_enabled ? 'badge badge-primary' : 'badge badge-gray'">
+                        {{ policy.effective_status_code }}
+                      </span>
+                      <span v-if="policy.custom_enabled" class="badge badge-success">
+                        {{ t('admin.errorPassthrough.custom') }}
+                      </span>
+                    </div>
+                    <div class="font-mono text-gray-700 dark:text-gray-300">{{ policy.effective_error_type }}</div>
+                    <div class="max-w-xs text-gray-500 dark:text-gray-400">{{ policy.effective_message }}</div>
+                  </div>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <div v-if="policy.retry_enabled" class="space-y-1">
+                    <span class="badge badge-warning">{{ t('admin.errorPassthrough.retryEnabled') }}</span>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ t('admin.errorPassthrough.maxRetries', { count: policy.max_retries }) }}
+                    </div>
+                  </div>
+                  <div v-else-if="policy.default_retryable" class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ t('admin.errorPassthrough.retryDisabled') }}
+                  </div>
+                  <div v-else class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ t('admin.errorPassthrough.notRetryable') }}
+                  </div>
+                </td>
+                <td class="px-3 py-3 align-top">
+                  <button
+                    type="button"
+                    @click="handleEditPolicy(policy)"
+                    class="p-1 text-gray-500 hover:text-primary-600 dark:hover:text-primary-400"
+                    :title="t('common.edit')"
+                  >
+                    <Icon name="edit" size="sm" />
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div v-else class="space-y-4">
       <!-- Rules Table -->
       <div v-if="loading" class="flex items-center justify-center py-8">
         <Icon name="refresh" size="lg" class="animate-spin text-gray-400" />
@@ -198,6 +328,7 @@
           </tbody>
         </table>
       </div>
+      </div>
     </div>
 
     <template #footer>
@@ -213,6 +344,7 @@
       :show="showCreateModal || showEditModal"
       :title="showEditModal ? t('admin.errorPassthrough.editRule') : t('admin.errorPassthrough.createRule')"
       width="wide"
+      :z-index="60"
       @close="closeFormModal"
     >
       <form @submit.prevent="handleSubmit" class="space-y-4">
@@ -415,6 +547,125 @@
       </template>
     </BaseDialog>
 
+    <!-- Policy Edit Modal -->
+    <BaseDialog
+      :show="showPolicyEditModal"
+      :title="t('admin.errorPassthrough.editPolicy')"
+      width="wide"
+      :z-index="60"
+      @close="closePolicyModal"
+    >
+      <form v-if="editingPolicy" @submit.prevent="handlePolicySubmit" class="space-y-4">
+        <div class="rounded-lg border border-gray-200 p-3 dark:border-dark-600">
+          <div class="text-sm font-medium text-gray-900 dark:text-white">
+            {{ editingPolicy.label }}
+          </div>
+          <div class="mt-1 font-mono text-xs text-gray-500 dark:text-gray-400">
+            {{ editingPolicy.category }}
+          </div>
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {{ editingPolicy.description }}
+          </p>
+        </div>
+
+        <div class="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-dark-600">
+          <label class="flex items-center gap-2">
+            <input
+              v-model="policyForm.custom_enabled"
+              type="checkbox"
+              class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('admin.errorPassthrough.policyForm.customEnabled') }}
+            </span>
+          </label>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="input-label text-xs">{{ t('admin.errorPassthrough.policyForm.statusCode') }}</label>
+              <input
+                v-model.number="policyForm.status_code"
+                type="number"
+                min="400"
+                max="599"
+                class="input text-sm"
+                :disabled="!policyForm.custom_enabled"
+              />
+            </div>
+            <div>
+              <label class="input-label text-xs">{{ t('admin.errorPassthrough.policyForm.errorType') }}</label>
+              <input
+                v-model="policyForm.error_type"
+                type="text"
+                class="input font-mono text-sm"
+                :disabled="!policyForm.custom_enabled"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="input-label text-xs">{{ t('admin.errorPassthrough.policyForm.message') }}</label>
+            <textarea
+              v-model="policyForm.message"
+              rows="3"
+              class="input text-sm"
+              :disabled="!policyForm.custom_enabled"
+            />
+          </div>
+        </div>
+
+        <div class="space-y-3 rounded-lg border border-gray-200 p-3 dark:border-dark-600">
+          <label class="flex items-center gap-2">
+            <input
+              v-model="policyForm.retry_enabled"
+              type="checkbox"
+              class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:opacity-50"
+              :disabled="!editingPolicy.default_retryable"
+            />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ t('admin.errorPassthrough.policyForm.retryEnabled') }}
+            </span>
+          </label>
+          <p v-if="!editingPolicy.default_retryable" class="text-xs text-gray-500 dark:text-gray-400">
+            {{ t('admin.errorPassthrough.policyForm.notRetryableHint') }}
+          </p>
+          <div class="max-w-xs">
+            <label class="input-label text-xs">{{ t('admin.errorPassthrough.policyForm.maxRetries') }}</label>
+            <input
+              v-model.number="policyForm.max_retries"
+              type="number"
+              min="1"
+              max="5"
+              class="input text-sm"
+              :disabled="!policyForm.retry_enabled || !editingPolicy.default_retryable"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="input-label">{{ t('admin.errorPassthrough.policyForm.note') }}</label>
+          <input
+            v-model="policyForm.note"
+            type="text"
+            class="input"
+            :placeholder="t('admin.errorPassthrough.policyForm.notePlaceholder')"
+          />
+        </div>
+      </form>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <button @click="closePolicyModal" type="button" class="btn btn-secondary">
+            {{ t('common.cancel') }}
+          </button>
+          <button @click="handlePolicySubmit" :disabled="policySubmitting" class="btn btn-primary">
+            <Icon v-if="policySubmitting" name="refresh" size="sm" class="mr-1 animate-spin" />
+            {{ t('common.save') }}
+          </button>
+        </div>
+      </template>
+    </BaseDialog>
+
     <!-- Delete Confirmation -->
     <ConfirmDialog
       :show="showDeleteDialog"
@@ -423,6 +674,7 @@
       :confirm-text="t('common.delete')"
       :cancel-text="t('common.cancel')"
       :danger="true"
+      :z-index="60"
       @confirm="confirmDelete"
       @cancel="showDeleteDialog = false"
     />
@@ -434,7 +686,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { adminAPI } from '@/api/admin'
-import type { ErrorPassthroughRule } from '@/api/admin/errorPassthrough'
+import type { ErrorPassthroughRule, UpstreamErrorPolicy } from '@/api/admin/errorPassthrough'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
@@ -453,13 +705,19 @@ void emit // suppress unused warning - emit is used via $emit in template
 const { t } = useI18n()
 const appStore = useAppStore()
 
+const activeTab = ref<'policies' | 'rules'>('policies')
 const rules = ref<ErrorPassthroughRule[]>([])
+const policies = ref<UpstreamErrorPolicy[]>([])
 const loading = ref(false)
+const policiesLoading = ref(false)
 const submitting = ref(false)
+const policySubmitting = ref(false)
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
+const showPolicyEditModal = ref(false)
 const showDeleteDialog = ref(false)
 const editingRule = ref<ErrorPassthroughRule | null>(null)
+const editingPolicy = ref<UpstreamErrorPolicy | null>(null)
 const deletingRule = ref<ErrorPassthroughRule | null>(null)
 
 // Form inputs for arrays
@@ -480,6 +738,16 @@ const form = reactive({
   description: null as string | null
 })
 
+const policyForm = reactive({
+  custom_enabled: false,
+  status_code: 502 as number | null,
+  error_type: '',
+  message: '',
+  retry_enabled: false,
+  max_retries: 1,
+  note: ''
+})
+
 const matchModeOptions = computed(() => [
   { value: 'any', label: t('admin.errorPassthrough.matchMode.any'), description: t('admin.errorPassthrough.matchMode.anyHint') },
   { value: 'all', label: t('admin.errorPassthrough.matchMode.all'), description: t('admin.errorPassthrough.matchMode.allHint') }
@@ -495,9 +763,31 @@ const platformOptions = [
 // Load rules when dialog opens
 watch(() => props.show, (newVal) => {
   if (newVal) {
-    loadRules()
+    activeTab.value = 'policies'
+    loadPolicies()
   }
 })
+
+watch(activeTab, (tab) => {
+  if (!props.show) return
+  if (tab === 'policies') {
+    loadPolicies()
+    return
+  }
+  loadRules()
+})
+
+const loadPolicies = async () => {
+  policiesLoading.value = true
+  try {
+    policies.value = await adminAPI.errorPassthrough.listPolicies()
+  } catch (error) {
+    appStore.showError(t('admin.errorPassthrough.failedToLoadPolicies'))
+    console.error('Error loading upstream error policies:', error)
+  } finally {
+    policiesLoading.value = false
+  }
+}
 
 const loadRules = async () => {
   loading.value = true
@@ -555,6 +845,62 @@ const handleEdit = (rule: ErrorPassthroughRule) => {
 const handleDelete = (rule: ErrorPassthroughRule) => {
   deletingRule.value = rule
   showDeleteDialog.value = true
+}
+
+const handleEditPolicy = (policy: UpstreamErrorPolicy) => {
+  editingPolicy.value = policy
+  policyForm.custom_enabled = policy.custom_enabled
+  policyForm.status_code = policy.status_code ?? policy.default_status_code
+  policyForm.error_type = policy.error_type || policy.default_error_type
+  policyForm.message = policy.message || policy.default_message
+  policyForm.retry_enabled = policy.default_retryable && policy.retry_enabled
+  policyForm.max_retries = policy.max_retries > 0 ? policy.max_retries : 1
+  policyForm.note = policy.note || ''
+  showPolicyEditModal.value = true
+}
+
+const closePolicyModal = () => {
+  showPolicyEditModal.value = false
+  editingPolicy.value = null
+  policySubmitting.value = false
+}
+
+const handlePolicySubmit = async () => {
+  if (!editingPolicy.value) return
+  if (policyForm.custom_enabled) {
+    if (!policyForm.status_code || policyForm.status_code < 400 || policyForm.status_code > 599) {
+      appStore.showError(t('admin.errorPassthrough.policyForm.invalidStatusCode'))
+      return
+    }
+    if (!policyForm.error_type.trim() || !policyForm.message.trim()) {
+      appStore.showError(t('admin.errorPassthrough.policyForm.responseRequired'))
+      return
+    }
+  }
+
+  policySubmitting.value = true
+  try {
+    const updated = await adminAPI.errorPassthrough.updatePolicy(editingPolicy.value.category, {
+      custom_enabled: policyForm.custom_enabled,
+      status_code: policyForm.custom_enabled ? policyForm.status_code : null,
+      error_type: policyForm.custom_enabled ? policyForm.error_type.trim() : '',
+      message: policyForm.custom_enabled ? policyForm.message.trim() : '',
+      retry_enabled: editingPolicy.value.default_retryable ? policyForm.retry_enabled : false,
+      max_retries: policyForm.retry_enabled ? policyForm.max_retries : 0,
+      note: policyForm.note.trim()
+    })
+    const index = policies.value.findIndex(policy => policy.category === updated.category)
+    if (index >= 0) {
+      policies.value[index] = updated
+    }
+    appStore.showSuccess(t('admin.errorPassthrough.policyUpdated'))
+    closePolicyModal()
+  } catch (error: any) {
+    appStore.showError(error.response?.data?.message || error.response?.data?.detail || t('admin.errorPassthrough.failedToSavePolicy'))
+    console.error('Error saving upstream error policy:', error)
+  } finally {
+    policySubmitting.value = false
+  }
 }
 
 const parseErrorCodes = (): number[] => {

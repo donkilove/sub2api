@@ -137,8 +137,9 @@ type OpsUpstreamErrorEvent struct {
 	// Kind: http_error | request_error | retry_exhausted | failover
 	Kind string `json:"kind,omitempty"`
 
-	Message string `json:"message,omitempty"`
-	Detail  string `json:"detail,omitempty"`
+	Classification string `json:"classification,omitempty"`
+	Message        string `json:"message,omitempty"`
+	Detail         string `json:"detail,omitempty"`
 }
 
 func appendOpsUpstreamError(c *gin.Context, ev OpsUpstreamErrorEvent) {
@@ -152,6 +153,7 @@ func appendOpsUpstreamError(c *gin.Context, ev OpsUpstreamErrorEvent) {
 	ev.UpstreamRequestID = strings.TrimSpace(ev.UpstreamRequestID)
 	ev.UpstreamResponseBody = strings.TrimSpace(ev.UpstreamResponseBody)
 	ev.Kind = strings.TrimSpace(ev.Kind)
+	ev.Classification = strings.TrimSpace(ev.Classification)
 	ev.UpstreamURL = strings.TrimSpace(ev.UpstreamURL)
 	ev.Message = strings.TrimSpace(ev.Message)
 	ev.Detail = strings.TrimSpace(ev.Detail)

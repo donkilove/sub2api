@@ -284,6 +284,7 @@ func sanitizeOpsUpstreamErrors(entry *OpsInsertErrorLogInput) error {
 		out.Platform = strings.TrimSpace(out.Platform)
 		out.UpstreamRequestID = truncateString(strings.TrimSpace(out.UpstreamRequestID), 128)
 		out.Kind = truncateString(strings.TrimSpace(out.Kind), 64)
+		out.Classification = truncateString(strings.TrimSpace(out.Classification), 64)
 
 		if out.AccountID < 0 {
 			out.AccountID = 0
@@ -309,7 +310,7 @@ func sanitizeOpsUpstreamErrors(entry *OpsInsertErrorLogInput) error {
 		}
 
 		// Drop fully-empty events (can happen if only status code was known).
-		if out.UpstreamStatusCode == 0 && out.Message == "" && out.Detail == "" {
+		if out.UpstreamStatusCode == 0 && out.Message == "" && out.Detail == "" && out.Classification == "" {
 			continue
 		}
 

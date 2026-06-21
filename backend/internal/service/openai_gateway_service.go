@@ -3519,6 +3519,7 @@ func (s *OpenAIGatewayService) handleFailoverErrorResponsePassthrough(
 
 	upstreamMsg := strings.TrimSpace(extractUpstreamErrorMessage(body))
 	upstreamMsg = sanitizeUpstreamErrorMessage(upstreamMsg)
+	classification := classifyOpenAIUpstreamHTTPErrorWithPolicy(ctx, s.settingService, resp.StatusCode, resp.Header, body, upstreamMsg)
 	upstreamDetail := ""
 	if s.cfg != nil && s.cfg.Gateway.LogUpstreamErrorBody {
 		maxBytes := s.cfg.Gateway.LogUpstreamErrorBodyMaxBytes
@@ -3539,13 +3540,18 @@ func (s *OpenAIGatewayService) handleFailoverErrorResponsePassthrough(
 		UpstreamRequestID:    resp.Header.Get("x-request-id"),
 		Passthrough:          true,
 		Kind:                 "failover",
+		Classification:       string(classification.Category),
 		Message:              upstreamMsg,
 		Detail:               upstreamDetail,
 		UpstreamResponseBody: upstreamDetail,
 	})
+	failoverBody := body
+	if classification.PolicyCustom {
+		failoverBody = openAIUpstreamErrorResponseBody(classification)
+	}
 	return &UpstreamFailoverError{
 		StatusCode:      resp.StatusCode,
-		ResponseBody:    body,
+		ResponseBody:    failoverBody,
 		ResponseHeaders: resp.Header.Clone(),
 	}
 }
@@ -3575,6 +3581,7 @@ func (s *OpenAIGatewayService) handleErrorResponsePassthrough(
 
 	upstreamMsg := strings.TrimSpace(extractUpstreamErrorMessage(body))
 	upstreamMsg = sanitizeUpstreamErrorMessage(upstreamMsg)
+	classification := classifyOpenAIUpstreamHTTPErrorWithPolicy(ctx, s.settingService, resp.StatusCode, resp.Header, body, upstreamMsg)
 	upstreamDetail := ""
 	if s.cfg != nil && s.cfg.Gateway.LogUpstreamErrorBody {
 		maxBytes := s.cfg.Gateway.LogUpstreamErrorBodyMaxBytes
@@ -3599,6 +3606,7 @@ func (s *OpenAIGatewayService) handleErrorResponsePassthrough(
 		UpstreamRequestID:    resp.Header.Get("x-request-id"),
 		Passthrough:          true,
 		Kind:                 "http_error",
+		Classification:       string(classification.Category),
 		Message:              upstreamMsg,
 		Detail:               upstreamDetail,
 		UpstreamResponseBody: upstreamDetail,
@@ -4315,6 +4323,7 @@ func (s *OpenAIGatewayService) handleErrorResponse(
 
 	upstreamMsg := strings.TrimSpace(extractUpstreamErrorMessage(body))
 	upstreamMsg = sanitizeUpstreamErrorMessage(upstreamMsg)
+	classification := classifyOpenAIUpstreamHTTPErrorWithPolicy(ctx, s.settingService, resp.StatusCode, resp.Header, body, upstreamMsg)
 	upstreamDetail := ""
 	if s.cfg != nil && s.cfg.Gateway.LogUpstreamErrorBody {
 		maxBytes := s.cfg.Gateway.LogUpstreamErrorBodyMaxBytes
@@ -4371,6 +4380,7 @@ func (s *OpenAIGatewayService) handleErrorResponse(
 			UpstreamStatusCode: resp.StatusCode,
 			UpstreamRequestID:  resp.Header.Get("x-request-id"),
 			Kind:               "http_error",
+			Classification:     string(classification.Category),
 			Message:            upstreamMsg,
 			Detail:             upstreamDetail,
 		})
@@ -4396,8 +4406,9 @@ func (s *OpenAIGatewayService) handleErrorResponse(
 		reqModel, _, _ = extractOpenAIRequestMetaFromBody(requestBody)
 	}
 	shouldDisable := s.handleOpenAIAccountUpstreamError(ctx, account, resp.StatusCode, resp.Header, body, reqModel)
+	policyRetry := classification.PolicyRetryEnabled && classification.PolicyMaxRetries > 0
 	kind := "http_error"
-	if shouldDisable {
+	if shouldDisable || policyRetry {
 		kind = "failover"
 	}
 	appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
@@ -4407,50 +4418,29 @@ func (s *OpenAIGatewayService) handleErrorResponse(
 		UpstreamStatusCode: resp.StatusCode,
 		UpstreamRequestID:  resp.Header.Get("x-request-id"),
 		Kind:               kind,
+		Classification:     string(classification.Category),
 		Message:            upstreamMsg,
 		Detail:             upstreamDetail,
 	})
-	if shouldDisable {
+	if shouldDisable || policyRetry {
+		failoverBody := body
+		if classification.PolicyCustom || policyRetry {
+			failoverBody = openAIUpstreamErrorResponseBody(classification)
+		}
 		return nil, &UpstreamFailoverError{
 			StatusCode:             resp.StatusCode,
-			ResponseBody:           body,
-			RetryableOnSameAccount: account.IsPoolMode() && account.IsPoolModeRetryableStatus(resp.StatusCode),
+			ResponseBody:           failoverBody,
+			RetryableOnSameAccount: account.IsPoolMode() && (account.IsPoolModeRetryableStatus(resp.StatusCode) || policyRetry),
+			MaxSameAccountRetries:  classification.PolicyMaxRetries,
 		}
 	}
 
 	MarkResponseCommitted(c)
 
-	// Return appropriate error response
-	var errType, errMsg string
-	var statusCode int
-
-	switch resp.StatusCode {
-	case 401:
-		statusCode = http.StatusBadGateway
-		errType = "upstream_error"
-		errMsg = "Upstream authentication failed, please contact administrator"
-	case 402:
-		statusCode = http.StatusBadGateway
-		errType = "upstream_error"
-		errMsg = "Upstream payment required: insufficient balance or billing issue"
-	case 403:
-		statusCode = http.StatusBadGateway
-		errType = "upstream_error"
-		errMsg = "Upstream access forbidden, please contact administrator"
-	case 429:
-		statusCode = http.StatusTooManyRequests
-		errType = "rate_limit_error"
-		errMsg = "Upstream rate limit exceeded, please retry later"
-	default:
-		statusCode = http.StatusBadGateway
-		errType = "upstream_error"
-		errMsg = "Upstream request failed"
-	}
-
-	c.JSON(statusCode, gin.H{
+	c.JSON(classification.ClientStatus, gin.H{
 		"error": gin.H{
-			"type":    errType,
-			"message": errMsg,
+			"type":    classification.ClientType,
+			"message": classification.ClientMessage,
 		},
 	})
 
@@ -4506,6 +4496,7 @@ func (s *OpenAIGatewayService) handleCompatErrorResponse(
 		upstreamMsg = fmt.Sprintf("Upstream error: %d", resp.StatusCode)
 	}
 	upstreamMsg = sanitizeUpstreamErrorMessage(upstreamMsg)
+	classification := classifyOpenAIUpstreamHTTPErrorWithPolicy(c.Request.Context(), s.settingService, resp.StatusCode, resp.Header, body, upstreamMsg)
 
 	upstreamDetail := ""
 	if s.cfg != nil && s.cfg.Gateway.LogUpstreamErrorBody {
@@ -4543,6 +4534,7 @@ func (s *OpenAIGatewayService) handleCompatErrorResponse(
 			UpstreamStatusCode: resp.StatusCode,
 			UpstreamRequestID:  resp.Header.Get("x-request-id"),
 			Kind:               "http_error",
+			Classification:     string(classification.Category),
 			Message:            upstreamMsg,
 			Detail:             upstreamDetail,
 		})
@@ -4562,8 +4554,9 @@ func (s *OpenAIGatewayService) handleCompatErrorResponse(
 	shouldDisable := s.handleOpenAIAccountUpstreamError(
 		c.Request.Context(), account, resp.StatusCode, resp.Header, body, modelForCooldown,
 	)
+	policyRetry := classification.PolicyRetryEnabled && classification.PolicyMaxRetries > 0
 	kind := "http_error"
-	if shouldDisable {
+	if shouldDisable || policyRetry {
 		kind = "failover"
 	}
 	appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
@@ -4573,33 +4566,26 @@ func (s *OpenAIGatewayService) handleCompatErrorResponse(
 		UpstreamStatusCode: resp.StatusCode,
 		UpstreamRequestID:  resp.Header.Get("x-request-id"),
 		Kind:               kind,
+		Classification:     string(classification.Category),
 		Message:            upstreamMsg,
 		Detail:             upstreamDetail,
 	})
-	if shouldDisable {
+	if shouldDisable || policyRetry {
+		failoverBody := body
+		if classification.PolicyCustom || policyRetry {
+			failoverBody = openAIUpstreamErrorResponseBody(classification)
+		}
 		return nil, &UpstreamFailoverError{
 			StatusCode:             resp.StatusCode,
-			ResponseBody:           body,
-			RetryableOnSameAccount: account.IsPoolMode() && account.IsPoolModeRetryableStatus(resp.StatusCode),
+			ResponseBody:           failoverBody,
+			RetryableOnSameAccount: account.IsPoolMode() && (account.IsPoolModeRetryableStatus(resp.StatusCode) || policyRetry),
+			MaxSameAccountRetries:  classification.PolicyMaxRetries,
 		}
 	}
 
 	MarkResponseCommitted(c)
 
-	// Map status code to error type and write response
-	errType := "api_error"
-	switch {
-	case resp.StatusCode == 400:
-		errType = "invalid_request_error"
-	case resp.StatusCode == 404:
-		errType = "not_found_error"
-	case resp.StatusCode == 429:
-		errType = "rate_limit_error"
-	case resp.StatusCode >= 500:
-		errType = "api_error"
-	}
-
-	writeError(c, resp.StatusCode, errType, upstreamMsg)
+	writeError(c, classification.ClientStatus, classification.ClientType, classification.ClientMessage)
 	return nil, fmt.Errorf("upstream error: %d %s", resp.StatusCode, upstreamMsg)
 }
 

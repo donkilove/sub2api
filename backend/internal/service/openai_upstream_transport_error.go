@@ -19,10 +19,9 @@ import (
 const openAITransportErrorTempUnschedDuration = 10 * time.Minute
 
 // openAITransportFailoverBody is the OpenAI-format error body attached to the
-// failover error for a transport-level failure. Kept identical to the legacy
-// inline 502 body so the client-visible payload is unchanged if failover is
-// ultimately exhausted.
-var openAITransportFailoverBody = []byte(`{"error":{"type":"upstream_error","message":"Upstream request failed"}}`)
+// failover error for a transport-level failure. The handler reuses this payload
+// if failover is ultimately exhausted.
+var openAITransportFailoverBody = []byte(`{"error":{"type":"upstream_transport_error","message":"Upstream connection failed, please retry later"}}`)
 
 // openAITransportErrorClass describes how to react to a transport-level upstream
 // failure — i.e. the HTTP round-trip never completed (proxy / DNS / TCP / TLS
@@ -107,6 +106,11 @@ func classifyOpenAITransportError(err error) openAITransportErrorClass {
 // passthrough tags the Ops error event for the OpenAI passthrough forward path.
 func (s *OpenAIGatewayService) handleOpenAIUpstreamTransportError(ctx context.Context, c *gin.Context, account *Account, err error, passthrough bool) error {
 	safeErr := sanitizeUpstreamErrorMessage(err.Error())
+	classification := applyOpenAIUpstreamErrorPolicy(
+		ctx,
+		s.settingService,
+		openAIUpstreamErrorMapping(openAIUpstreamErrorTransport),
+	)
 	setOpsUpstreamError(c, 0, safeErr, "")
 	appendOpsUpstreamError(c, OpsUpstreamErrorEvent{
 		Platform:           account.Platform,
@@ -115,6 +119,7 @@ func (s *OpenAIGatewayService) handleOpenAIUpstreamTransportError(ctx context.Co
 		UpstreamStatusCode: 0,
 		Passthrough:        passthrough,
 		Kind:               "request_error",
+		Classification:     string(openAIUpstreamErrorTransport),
 		Message:            safeErr,
 	})
 
@@ -129,8 +134,10 @@ func (s *OpenAIGatewayService) handleOpenAIUpstreamTransportError(ctx context.Co
 	}
 
 	return &UpstreamFailoverError{
-		StatusCode:   http.StatusBadGateway,
-		ResponseBody: openAITransportFailoverBody,
+		StatusCode:             http.StatusBadGateway,
+		ResponseBody:           openAIUpstreamErrorResponseBody(classification),
+		RetryableOnSameAccount: account.IsPoolMode() && classification.PolicyRetryEnabled && classification.PolicyMaxRetries > 0,
+		MaxSameAccountRetries:  classification.PolicyMaxRetries,
 	}
 }
 
