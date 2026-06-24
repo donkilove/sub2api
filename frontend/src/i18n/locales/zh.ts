@@ -6783,7 +6783,7 @@ export default {
         statusCode: '返回状态码',
         errorType: '错误类型',
         message: '错误提示',
-        retryEnabled: '出错时先重试/切换账号',
+        retryEnabled: '出错时先同账号重试（不依赖池模式）',
         maxRetries: '同账号重试次数',
         notRetryableHint: '该错误通常需要用户或管理员处理，不能开启自动重试。',
         note: '备注',

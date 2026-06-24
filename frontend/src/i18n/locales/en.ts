@@ -6628,7 +6628,7 @@ export default {
         statusCode: 'Response status',
         errorType: 'Error type',
         message: 'Error message',
-        retryEnabled: 'Retry or switch account before returning error',
+        retryEnabled: 'Retry on the same account first (no pool mode required)',
         maxRetries: 'Same-account retries',
         notRetryableHint: 'This error usually requires user or admin action and cannot be retried automatically.',
         note: 'Note',

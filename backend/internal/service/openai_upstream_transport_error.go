@@ -136,7 +136,7 @@ func (s *OpenAIGatewayService) handleOpenAIUpstreamTransportError(ctx context.Co
 	return &UpstreamFailoverError{
 		StatusCode:             http.StatusBadGateway,
 		ResponseBody:           openAIUpstreamErrorResponseBody(classification),
-		RetryableOnSameAccount: account.IsPoolMode() && classification.PolicyRetryEnabled && classification.PolicyMaxRetries > 0,
+		RetryableOnSameAccount: classification.PolicyRetryEnabled && classification.PolicyMaxRetries > 0,
 		MaxSameAccountRetries:  classification.PolicyMaxRetries,
 	}
 }

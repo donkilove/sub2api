@@ -317,6 +317,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 	switchCount := 0
 	failedAccountIDs := make(map[int64]struct{})
 	sameAccountRetryCount := make(map[int64]int)
+	selectionExhaustedRetryCount := 0
 	var lastFailoverErr *service.UpstreamFailoverError
 
 	for {
@@ -338,6 +339,13 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 				zap.Error(err),
 				zap.Int("excluded_account_count", len(failedAccountIDs)),
 			)
+			if shouldRetryOpenAISelectionExhausted(err, len(failedAccountIDs), selectionExhaustedRetryCount) {
+				selectionExhaustedRetryCount++
+				if !waitBeforeRetryOpenAISelection(c.Request.Context(), "openai.account_select_retry", reqLog, err, selectionExhaustedRetryCount) {
+					return
+				}
+				continue
+			}
 			if len(failedAccountIDs) == 0 {
 				markOpsRoutingCapacityLimitedIfNoAvailable(c, err)
 				if errors.Is(err, service.ErrNoAvailableCompactAccounts) {
@@ -423,7 +431,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 						return
 					}
 					h.gatewayService.ReportOpenAIAccountScheduleResult(account.ID, false, nil)
-					// 池模式：同账号重试
+					// 对临时性错误先同账号重试；错误治理策略重试不依赖账号池模式。
 					if failoverErr.RetryableOnSameAccount {
 						retryLimit := account.GetPoolModeRetryCount()
 						if failoverErr.MaxSameAccountRetries > 0 {
@@ -431,7 +439,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 						}
 						if sameAccountRetryCount[account.ID] < retryLimit {
 							sameAccountRetryCount[account.ID]++
-							reqLog.Warn("openai.pool_mode_same_account_retry",
+							reqLog.Warn("openai.same_account_retry",
 								zap.Int64("account_id", account.ID),
 								zap.Int("upstream_status", failoverErr.StatusCode),
 								zap.Int("retry_limit", retryLimit),
@@ -737,6 +745,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 	switchCount := 0
 	failedAccountIDs := make(map[int64]struct{})
 	sameAccountRetryCount := make(map[int64]int)
+	selectionExhaustedRetryCount := 0
 	var lastFailoverErr *service.UpstreamFailoverError
 	effectiveMappedModel := preferredMappedModel
 
@@ -762,6 +771,13 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 				zap.Error(err),
 				zap.Int("excluded_account_count", len(failedAccountIDs)),
 			)
+			if shouldRetryOpenAISelectionExhausted(err, len(failedAccountIDs), selectionExhaustedRetryCount) {
+				selectionExhaustedRetryCount++
+				if !waitBeforeRetryOpenAISelection(c.Request.Context(), "openai_messages.account_select_retry", reqLog, err, selectionExhaustedRetryCount) {
+					return
+				}
+				continue
+			}
 			if len(failedAccountIDs) == 0 {
 				if err != nil {
 					markOpsRoutingCapacityLimitedIfNoAvailable(c, err)
@@ -838,7 +854,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 						return
 					}
 					h.gatewayService.ReportOpenAIAccountScheduleResult(account.ID, false, nil)
-					// 池模式：同账号重试
+					// 对临时性错误先同账号重试；错误治理策略重试不依赖账号池模式。
 					if failoverErr.RetryableOnSameAccount {
 						retryLimit := account.GetPoolModeRetryCount()
 						if failoverErr.MaxSameAccountRetries > 0 {
@@ -846,7 +862,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 						}
 						if sameAccountRetryCount[account.ID] < retryLimit {
 							sameAccountRetryCount[account.ID]++
-							reqLog.Warn("openai_messages.pool_mode_same_account_retry",
+							reqLog.Warn("openai_messages.same_account_retry",
 								zap.Int64("account_id", account.ID),
 								zap.Int("upstream_status", failoverErr.StatusCode),
 								zap.Int("retry_limit", retryLimit),

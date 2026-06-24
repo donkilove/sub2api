@@ -4430,7 +4430,7 @@ func (s *OpenAIGatewayService) handleErrorResponse(
 		return nil, &UpstreamFailoverError{
 			StatusCode:             resp.StatusCode,
 			ResponseBody:           failoverBody,
-			RetryableOnSameAccount: account.IsPoolMode() && (account.IsPoolModeRetryableStatus(resp.StatusCode) || policyRetry),
+			RetryableOnSameAccount: policyRetry || (account.IsPoolMode() && account.IsPoolModeRetryableStatus(resp.StatusCode)),
 			MaxSameAccountRetries:  classification.PolicyMaxRetries,
 		}
 	}
@@ -4578,7 +4578,7 @@ func (s *OpenAIGatewayService) handleCompatErrorResponse(
 		return nil, &UpstreamFailoverError{
 			StatusCode:             resp.StatusCode,
 			ResponseBody:           failoverBody,
-			RetryableOnSameAccount: account.IsPoolMode() && (account.IsPoolModeRetryableStatus(resp.StatusCode) || policyRetry),
+			RetryableOnSameAccount: policyRetry || (account.IsPoolMode() && account.IsPoolModeRetryableStatus(resp.StatusCode)),
 			MaxSameAccountRetries:  classification.PolicyMaxRetries,
 		}
 	}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -195,4 +196,56 @@ func TestOpenAIHandleErrorResponsePassthroughRuleStillWins(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, http.StatusTeapot, rec.Code)
 	require.Contains(t, rec.Body.String(), customMessage)
+}
+
+func TestOpenAIHandleErrorResponsePolicyRetryDoesNotRequirePoolMode(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
+
+	settingSvc := NewSettingService(newMemorySettingRepo(), nil)
+	require.NoError(t, settingSvc.UpdateUpstreamErrorPolicy(context.Background(), "upstream_server_error", UpstreamErrorPolicyUpdate{
+		RetryEnabled: policyBoolPtr(true),
+		MaxRetries:   policyIntPtr(2),
+	}))
+	svc := &OpenAIGatewayService{settingService: settingSvc}
+	resp := &http.Response{
+		StatusCode: http.StatusServiceUnavailable,
+		Body:       io.NopCloser(bytes.NewReader([]byte(`{"error":{"message":"temporarily overloaded"}}`))),
+		Header:     http.Header{},
+	}
+	account := &Account{ID: 34, Platform: PlatformOpenAI, Name: "openai-c", Type: AccountTypeAPIKey}
+
+	_, err := svc.handleErrorResponse(context.Background(), resp, c, account, nil)
+	require.Error(t, err)
+
+	var failoverErr *UpstreamFailoverError
+	require.True(t, errors.As(err, &failoverErr))
+	require.True(t, failoverErr.RetryableOnSameAccount)
+	require.Equal(t, 2, failoverErr.MaxSameAccountRetries)
+}
+
+func TestHandleOpenAIUpstreamTransportErrorPolicyRetryDoesNotRequirePoolMode(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	rec := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(rec)
+	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
+
+	settingSvc := NewSettingService(newMemorySettingRepo(), nil)
+	require.NoError(t, settingSvc.UpdateUpstreamErrorPolicy(context.Background(), "transport_error", UpstreamErrorPolicyUpdate{
+		RetryEnabled: policyBoolPtr(true),
+		MaxRetries:   policyIntPtr(2),
+	}))
+	svc := &OpenAIGatewayService{settingService: settingSvc}
+	account := &Account{ID: 35, Platform: PlatformOpenAI, Name: "openai-transport", Type: AccountTypeAPIKey}
+
+	err := svc.handleOpenAIUpstreamTransportError(context.Background(), c, account, errors.New("temporary EOF"), false)
+	require.Error(t, err)
+
+	var failoverErr *UpstreamFailoverError
+	require.True(t, errors.As(err, &failoverErr))
+	require.True(t, failoverErr.RetryableOnSameAccount)
+	require.Equal(t, 2, failoverErr.MaxSameAccountRetries)
+	require.Equal(t, 0, rec.Body.Len())
 }
